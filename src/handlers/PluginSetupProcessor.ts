@@ -86,6 +86,12 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         }
         break;
       }
+      case "gauge":
+        context.addGaugeVoter(pluginAddress);
+        break;
+      case "capitalDistributor":
+        context.addCapitalDistributor(pluginAddress);
+        break;
       default:
         // Unknown plugin repo — register for Multisig as fallback
         context.addMultisig(pluginAddress);

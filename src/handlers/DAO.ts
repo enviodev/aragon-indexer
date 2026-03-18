@@ -2,6 +2,8 @@ import { DAO } from "generated";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchDaoMetadata } from "../effects/ipfs";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 DAO.MetadataSet.handler(async ({ event, context }) => {
   const chainId = event.chainId;
   const daoAddress = event.srcAddress;
@@ -29,6 +31,14 @@ DAO.NativeTokenDeposited.handler(async ({ event, context }) => {
   // Log native token deposits — can be used for TVL tracking
   // The DAO entity already exists from DAORegistered
   // No entity update needed for basic indexing
+});
+
+// Register condition addresses for ExecuteSelectorCondition events
+DAO.Granted.contractRegister(({ event, context }) => {
+  const condition = event.params.condition;
+  if (condition && condition !== ZERO_ADDRESS) {
+    context.addExecuteSelectorCondition(condition);
+  }
 });
 
 DAO.Granted.handler(async ({ event, context }) => {

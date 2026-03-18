@@ -120,6 +120,40 @@ contracts:
       - event: VotingSettingsUpdated(uint8 votingMode, uint32 supportThresholdRatio, uint32 minParticipationRatio, uint32 minApprovalRatio, uint64 proposalDuration, uint256 minProposerVotingPower)
         name: LockToVoteSettingsUpdated
 
+  # =============================================
+  # Phase 4: Gauge Voting (factory-registered from gauge plugins)
+  # =============================================
+  - name: GaugeVoter
+    events:
+      - event: GaugeCreated(address indexed gauge, address indexed creator, string metadataURI)
+      - event: GaugeActivated(address indexed gauge)
+      - event: GaugeDeactivated(address indexed gauge)
+      - event: GaugeMetadataUpdated(address indexed gauge, string metadataURI)
+      - event: Voted(address indexed voter, address indexed gauge, uint256 indexed epoch, uint256 votingPowerCastForGauge, uint256 totalVotingPowerInGauge, uint256 totalVotingPowerInContract, uint256 timestamp)
+      - event: Reset(address indexed voter, address indexed gauge, uint256 indexed epoch, uint256 votingPowerRemovedFromGauge, uint256 totalVotingPowerInGauge, uint256 totalVotingPowerInContract, uint256 timestamp)
+
+  # =============================================
+  # Phase 4: Capital Distribution (factory-registered from capitalDistributor plugins)
+  # =============================================
+  - name: CapitalDistributor
+    events:
+      - event: CampaignCreated(uint256 indexed campaignId, bytes metadataUri, address indexed allocationStrategy, address token, address actionEncoder, uint64 startTime, uint64 endTime)
+      - event: MerkleCampaignSet(uint256 indexed campaignId, bytes32 merkleRoot)
+      - event: MerkleCampaignUpdated(uint256 indexed campaignId, bytes32 oldMerkleRoot, bytes32 newMerkleRoot)
+      - event: CampaignPaused(uint256 indexed campaignId)
+      - event: CampaignResumed(uint256 indexed campaignId)
+      - event: CampaignEnded(uint256 indexed campaignId)
+
+  # =============================================
+  # Phase 4: Execute Selector Condition (factory-registered from condition addresses)
+  # =============================================
+  - name: ExecuteSelectorCondition
+    events:
+      - event: SelectorAllowed(bytes4 selector, address where)
+      - event: SelectorDisallowed(bytes4 selector, address where)
+      - event: NativeTransfersAllowed(address where)
+      - event: NativeTransfersDisallowed(address where)
+
 # =============================================
 # Chain Configurations
 # =============================================
@@ -146,6 +180,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- Ethereum Sepolia ---
   - id: 11155111
@@ -169,6 +206,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- Polygon Mainnet ---
   - id: 137
@@ -192,6 +232,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- Arbitrum Mainnet ---
   - id: 42161
@@ -215,6 +258,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- Base Mainnet ---
   - id: 8453
@@ -238,6 +284,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- zkSync Mainnet ---
   - id: 324
@@ -261,6 +310,9 @@ chains:
       - name: ExitQueue
       - name: LockManager
       - name: LockToVote
+      - name: GaugeVoter
+      - name: CapitalDistributor
+      - name: ExecuteSelectorCondition
 
   # --- zkSync Sepolia (disabled - no HyperSync support) ---
   # - id: 300

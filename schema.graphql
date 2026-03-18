@@ -302,3 +302,82 @@ type LockToVoteMember {
   memberAddress: String! @index
   lockedAmount: BigInt!
 }
+
+# ==============================
+# Gauge Voting (Phase 4)
+# ==============================
+
+enum GaugeStatus {
+  Active
+  Deactivated
+}
+
+type Gauge {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+  pluginAddress: String! @index
+  creatorAddress: String!
+  metadataUri: String
+  status: GaugeStatus!
+  blockNumber: Int!
+  transactionHash: String!
+}
+
+type GaugeVote {
+  id: ID!
+  chainId: Int!
+  pluginAddress: String! @index
+  gaugeAddress: String! @index
+  voterAddress: String! @index
+  epoch: String! @index
+  votingPower: BigInt!
+  blockNumber: Int!
+  blockTimestamp: Int
+  transactionHash: String!
+}
+
+# ==============================
+# Capital Distribution (Phase 4)
+# ==============================
+
+type Campaign {
+  id: ID!
+  chainId: Int!
+  pluginAddress: String! @index
+  campaignId: String! @index
+  metadataUri: String
+  token: String
+  startTime: BigInt
+  endTime: BigInt
+  merkleRoot: String
+  isPaused: Boolean!
+  isEnded: Boolean!
+  blockNumber: Int!
+  transactionHash: String!
+}
+
+# ==============================
+# Selector Permissions (Phase 4)
+# ==============================
+
+type SelectorPermission {
+  id: ID!
+  chainId: Int!
+  conditionAddress: String! @index
+  selector: String! @index
+  whereAddress: String! @index
+  allowed: Boolean!
+  blockNumber: Int!
+  transactionHash: String!
+}
+
+type NativeTransferPermission {
+  id: ID!
+  chainId: Int!
+  conditionAddress: String! @index
+  whereAddress: String! @index
+  allowed: Boolean!
+  blockNumber: Int!
+  transactionHash: String!
+}

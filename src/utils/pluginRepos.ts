@@ -10,7 +10,9 @@ type PluginType =
   | "admin"
   | "addresslistVoting"
   | "spp"
-  | "lockToVote";
+  | "lockToVote"
+  | "gauge"
+  | "capitalDistributor";
 
 const PLUGIN_REPO_MAP: Record<string, PluginType> = {};
 
