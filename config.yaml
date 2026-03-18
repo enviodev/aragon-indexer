@@ -84,6 +84,42 @@ contracts:
       - event: DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate)
       - event: DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance)
 
+  # =============================================
+  # Phase 3: VE Governance Contracts (factory-registered via RPC discovery)
+  # =============================================
+  - name: VotingEscrow
+    events:
+      - event: Deposit(address indexed depositor, uint256 indexed tokenId, uint256 indexed startTs, uint256 value, uint256 newTotalLocked)
+      - event: Withdraw(address indexed depositor, uint256 indexed tokenId, uint256 value, uint256 ts, uint256 newTotalLocked)
+      - event: MinDepositSet(uint256 minDeposit)
+      - event: TokensDelegated(address indexed sender, address indexed delegatee, uint256[] tokenIds)
+      - event: TokensUndelegated(address indexed sender, address indexed delegatee, uint256[] tokenIds)
+
+  - name: ExitQueue
+    events:
+      - event: ExitQueued(uint256 indexed tokenId, address indexed holder, uint256 exitDate)
+      - event: ExitQueuedV2(uint256 indexed tokenId, address indexed holder, uint48 queuedAt)
+      - event: ExitCancelled(uint256 indexed tokenId, address indexed holder)
+      - event: MinLockSet(uint48 minLock)
+      - event: ExitFeePercentAdjusted(uint256 maxFeePercent, uint256 minFeePercent, uint48 minCooldown, uint8 feeType)
+
+  - name: LockManager
+    events:
+      - event: BalanceLocked(address indexed voter, uint256 amount)
+      - event: BalanceUnlocked(address indexed voter, uint256 amount)
+
+  - name: LockToVote
+    events:
+      - event: VoteCast(uint256 indexed proposalId, address indexed voter, uint8 voteOption, uint256 votingPower)
+        name: LockToVoteVoteCast
+      - event: VoteCleared(uint256 indexed proposalId, address indexed voter)
+      - event: "ProposalCreated(uint256 indexed proposalId, address indexed creator, uint64 startDate, uint64 endDate, bytes metadata, (address, uint256, bytes)[] actions, uint256 allowFailureMap)"
+        name: LockToVoteProposalCreated
+      - event: ProposalExecuted(uint256 indexed proposalId)
+        name: LockToVoteProposalExecuted
+      - event: VotingSettingsUpdated(uint8 votingMode, uint32 supportThresholdRatio, uint32 minParticipationRatio, uint32 minApprovalRatio, uint64 proposalDuration, uint256 minProposerVotingPower)
+        name: LockToVoteSettingsUpdated
+
 # =============================================
 # Chain Configurations
 # =============================================
@@ -106,6 +142,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- Ethereum Sepolia ---
   - id: 11155111
@@ -125,6 +165,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- Polygon Mainnet ---
   - id: 137
@@ -144,6 +188,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- Arbitrum Mainnet ---
   - id: 42161
@@ -163,6 +211,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- Base Mainnet ---
   - id: 8453
@@ -182,6 +234,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- zkSync Mainnet ---
   - id: 324
@@ -201,6 +257,10 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+      - name: VotingEscrow
+      - name: ExitQueue
+      - name: LockManager
+      - name: LockToVote
 
   # --- zkSync Sepolia (disabled - no HyperSync support) ---
   # - id: 300

@@ -1,5 +1,6 @@
 import { PluginSetupProcessor } from "generated";
 import { getPluginTypeFromRepo } from "../utils/pluginRepos";
+import { discoverVeContracts, discoverLockManagerAddress } from "../utils/veDiscovery";
 
 // =============================================
 // Contract Registration — register plugin addresses for dynamic indexing
@@ -9,17 +10,24 @@ import { getPluginTypeFromRepo } from "../utils/pluginRepos";
 // =============================================
 
 PluginSetupProcessor.InstallationPrepared.contractRegister(
-  ({ event, context }) => {
+  async ({ event, context }) => {
     const pluginAddress = event.params.plugin;
     const repoAddress = event.params.pluginSetupRepo;
     const pluginType = getPluginTypeFromRepo(repoAddress);
     const helpers = event.params.preparedSetupData[0]; // address[] helpers
 
+    // Extract token address from helpers for tokenVoting plugins
+    const getTokenFromHelpers = (): `0x${string}` | undefined => {
+      if (helpers.length === 1 && helpers[0]) return helpers[0];
+      if (helpers.length >= 2 && helpers[helpers.length - 1]) return helpers[helpers.length - 1]!;
+      return undefined;
+    };
+
     switch (pluginType) {
       case "multisig":
         context.addMultisig(pluginAddress);
         break;
-      case "tokenVoting":
+      case "tokenVoting": {
         context.addTokenVoting(pluginAddress);
         // Register the GovernanceERC20 token for delegation events.
         // Token is a DIFFERENT address from the plugin, so no overwrite.
@@ -32,12 +40,20 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         // HyperIndex limitation (no "go back in time" for dynamic contracts).
         // For newly deployed tokens (majority of cases), same-block coverage
         // ensures we capture everything from block zero of the token's existence.
-        if (helpers.length === 1 && helpers[0]) {
-          context.addGovernanceERC20(helpers[0]);
-        } else if (helpers.length >= 2 && helpers[helpers.length - 1]) {
-          context.addGovernanceERC20(helpers[helpers.length - 1]!);
+        const tokenAddress = getTokenFromHelpers();
+        if (tokenAddress) {
+          context.addGovernanceERC20(tokenAddress);
+          // Discover VE governance contracts (escrow, exitQueue) from token
+          try {
+            const ve = await discoverVeContracts(tokenAddress, event.chainId);
+            if (ve) {
+              context.addVotingEscrow(ve.escrowAddress as `0x${string}`);
+              if (ve.exitQueueAddress) context.addExitQueue(ve.exitQueueAddress as `0x${string}`);
+            }
+          } catch { /* VE discovery is best-effort */ }
         }
         break;
+      }
       case "spp":
         context.addStagedProposalProcessor(pluginAddress);
         break;
@@ -48,9 +64,30 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         // Uses same events as TokenVoting (VotingSettingsUpdated, ProposalCreated, etc.)
         context.addTokenVoting(pluginAddress);
         break;
+      case "lockToVote": {
+        // LockToVote has same proposal/vote events as TokenVoting
+        context.addLockToVote(pluginAddress);
+        // Discover LockManager contract via RPC
+        try {
+          const lockManagerAddr = await discoverLockManagerAddress(pluginAddress, event.chainId);
+          if (lockManagerAddr) context.addLockManager(lockManagerAddr as `0x${string}`);
+        } catch { /* best-effort */ }
+        // Also register token and VE contracts from helpers
+        const ltToken = getTokenFromHelpers();
+        if (ltToken) {
+          context.addGovernanceERC20(ltToken);
+          try {
+            const ve = await discoverVeContracts(ltToken, event.chainId);
+            if (ve) {
+              context.addVotingEscrow(ve.escrowAddress as `0x${string}`);
+              if (ve.exitQueueAddress) context.addExitQueue(ve.exitQueueAddress as `0x${string}`);
+            }
+          } catch { /* best-effort */ }
+        }
+        break;
+      }
       default:
-        // Unknown plugin repo — register for all types to catch events
-        // This is a fallback for 3rd party plugins
+        // Unknown plugin repo — register for Multisig as fallback
         context.addMultisig(pluginAddress);
         break;
     }

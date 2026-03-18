@@ -9,7 +9,8 @@ type PluginType =
   | "tokenVoting"
   | "admin"
   | "addresslistVoting"
-  | "spp";
+  | "spp"
+  | "lockToVote";
 
 const PLUGIN_REPO_MAP: Record<string, PluginType> = {};
 

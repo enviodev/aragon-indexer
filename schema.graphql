@@ -261,3 +261,44 @@ type DelegateVotesChangedEvent {
   blockNumber: Int! @index
   transactionHash: String!
 }
+
+# ==============================
+# VE Governance (Phase 3)
+# ==============================
+
+type Lock {
+  id: ID!
+  chainId: Int!
+  escrowAddress: String! @index
+  tokenId: String! @index
+  memberAddress: String! @index
+  amount: BigInt!
+  blockNumber: Int!
+  blockTimestamp: Int
+  transactionHash: String!
+  isWithdrawn: Boolean!
+  withdrawnAt: Int
+  exitQueued: Boolean!
+  exitQueuedAt: Int
+  exitCancelled: Boolean!
+}
+
+type TokenDelegation {
+  id: ID!
+  chainId: Int!
+  escrowAddress: String! @index
+  delegator: String! @index
+  delegatee: String! @index
+  tokenIds: [String!]!
+  isDelegated: Boolean!
+  blockNumber: Int! @index
+  transactionHash: String!
+}
+
+type LockToVoteMember {
+  id: ID!
+  chainId: Int!
+  lockManagerAddress: String! @index
+  memberAddress: String! @index
+  lockedAmount: BigInt!
+}
