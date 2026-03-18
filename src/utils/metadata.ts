@@ -11,8 +11,12 @@ export function extractIpfsCid(metadataBytes: string): string | undefined {
       ? metadataBytes.slice(2)
       : metadataBytes;
 
-    // Decode hex to UTF-8
-    const decoded = Buffer.from(hex, "hex").toString("utf8");
+    // Decode hex to UTF-8 and strip null bytes (Postgres rejects 0x00 in text)
+    const decoded = Buffer.from(hex, "hex")
+      .toString("utf8")
+      .replace(/\0/g, "");
+
+    if (!decoded) return undefined;
 
     // Check if it starts with ipfs:// prefix
     if (decoded.startsWith("ipfs://")) {
@@ -24,7 +28,8 @@ export function extractIpfsCid(metadataBytes: string): string | undefined {
       return decoded;
     }
 
-    return decoded || undefined;
+    // Not a recognizable IPFS CID format
+    return undefined;
   } catch {
     return undefined;
   }
