@@ -14,8 +14,8 @@ export interface ProposalMetadata {
   resources?: Array<{ name: string; url: string }>;
 }
 
-const DEDICATED_GATEWAY = process.env.IPFS_GATEWAY_URL
-  ? `${process.env.IPFS_GATEWAY_URL.replace(/\/$/, "")}/ipfs/`
+const DEDICATED_GATEWAY = process.env.ENVIO_IPFS_GATEWAY_URL
+  ? `${process.env.ENVIO_IPFS_GATEWAY_URL!.replace(/\/$/, "")}/ipfs/`
   : undefined;
 
 const PUBLIC_GATEWAYS = [

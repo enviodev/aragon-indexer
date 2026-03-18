@@ -14,12 +14,12 @@ import {
  */
 
 const CHAINS: Record<number, { chain: any; rpcUrl: string }> = {
-  1: { chain: mainnet, rpcUrl: process.env.RPC_URL_1 || "https://ethereum-rpc.publicnode.com" },
-  137: { chain: polygon, rpcUrl: process.env.RPC_URL_137 || "https://polygon-bor-rpc.publicnode.com" },
-  42161: { chain: arbitrum, rpcUrl: process.env.RPC_URL_42161 || "https://arbitrum-one-rpc.publicnode.com" },
-  8453: { chain: base, rpcUrl: process.env.RPC_URL_8453 || "https://base-rpc.publicnode.com" },
-  11155111: { chain: sepolia, rpcUrl: process.env.RPC_URL_11155111 || "https://ethereum-sepolia-rpc.publicnode.com" },
-  324: { chain: zkSync, rpcUrl: process.env.RPC_URL_324 || "https://mainnet.era.zksync.io" },
+  1: { chain: mainnet, rpcUrl: process.env.ENVIO_RPC_URL_1 || "https://ethereum-rpc.publicnode.com" },
+  137: { chain: polygon, rpcUrl: process.env.ENVIO_RPC_URL_137 || "https://polygon-bor-rpc.publicnode.com" },
+  42161: { chain: arbitrum, rpcUrl: process.env.ENVIO_RPC_URL_42161 || "https://arbitrum-one-rpc.publicnode.com" },
+  8453: { chain: base, rpcUrl: process.env.ENVIO_RPC_URL_8453 || "https://base-rpc.publicnode.com" },
+  11155111: { chain: sepolia, rpcUrl: process.env.ENVIO_RPC_URL_11155111 || "https://ethereum-sepolia-rpc.publicnode.com" },
+  324: { chain: zkSync, rpcUrl: process.env.ENVIO_RPC_URL_324 || "https://mainnet.era.zksync.io" },
 };
 
 const escrowAbi = parseAbi(["function escrow() view returns (address)"]);
