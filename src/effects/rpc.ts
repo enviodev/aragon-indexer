@@ -126,9 +126,14 @@ export const fetchTokenMetadata = createEffect(
         client.readContract({ address: addr, abi: erc20Abi, functionName: "decimals" }),
       ]);
 
+      // Strip null bytes and control characters — some contracts return garbage
+      // that Postgres rejects (e.g. \u0000 in "Governance Staked Astral Ether\n\u0000")
+      const sanitize = (s: string | undefined): string | undefined =>
+        s?.replace(/[\x00-\x1f]/g, "").trim() || undefined;
+
       return {
-        name: name.status === "fulfilled" ? name.value : undefined,
-        symbol: symbol.status === "fulfilled" ? symbol.value : undefined,
+        name: name.status === "fulfilled" ? sanitize(name.value) : undefined,
+        symbol: symbol.status === "fulfilled" ? sanitize(symbol.value) : undefined,
         decimals: decimals.status === "fulfilled" ? Number(decimals.value) : undefined,
       };
     } catch {
