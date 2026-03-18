@@ -61,7 +61,7 @@ export const fetchDaoMetadata = createEffect(
       null,
     ]),
     cache: true,
-    rateLimit: { calls: 50, per: 1000 },
+    rateLimit: false,
   },
   async ({ input: cid }) => {
     if (!cid) return null;
@@ -90,7 +90,7 @@ export const fetchProposalMetadata = createEffect(
       null,
     ]),
     cache: true,
-    rateLimit: { calls: 50, per: 1000 },
+    rateLimit: false,
   },
   async ({ input: cid }) => {
     if (!cid) return null;
