@@ -1,0 +1,263 @@
+# ==============================
+# Enums
+# ==============================
+
+enum PluginInterfaceType {
+  tokenVoting
+  multisig
+  admin
+  addresslistVoting
+  spp
+  gauge
+  lockToVote
+  capitalDistributor
+  router
+  claimer
+  unknown
+}
+
+enum PluginStatus {
+  preInstall
+  installed
+  updated
+  uninstalled
+  abandoned
+}
+
+enum PermissionEvent {
+  Granted
+  Revoked
+}
+
+enum ProposalStatus {
+  Active
+  Succeeded
+  Defeated
+  Executed
+  Canceled
+}
+
+# ==============================
+# Core Entities
+# ==============================
+
+type Dao {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+  blockNumber: Int!
+  blockTimestamp: Int!
+  transactionHash: String!
+  creatorAddress: String! @index
+  implementationAddress: String
+  ens: String
+  subdomain: String @index
+  version: String
+  metadataUri: String
+  name: String
+  description: String
+  avatar: String
+  links: Json
+  proposalCount: Int!
+  memberCount: Int!
+  plugins: [Plugin!]! @derivedFrom(field: "dao")
+  permissions: [DaoPermission!]! @derivedFrom(field: "dao")
+  proposals: [Proposal!]! @derivedFrom(field: "dao")
+}
+
+type PluginRepo {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+  subdomain: String! @index
+  blockNumber: Int!
+  transactionHash: String!
+}
+
+type Plugin {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+  dao: Dao! @index
+  daoAddress: String! @index
+  interfaceType: PluginInterfaceType! @index
+  status: PluginStatus! @index
+  isSupported: Boolean!
+  blockNumber: Int!
+  blockTimestamp: Int
+  transactionHash: String!
+  pluginSetupRepo: String
+  release: Int
+  build: Int
+  subdomain: String
+  tokenAddress: String
+  votingEscrow: Json
+  conditionAddress: String
+  lockManagerAddress: String
+  permissions: Json
+  subPlugins: Json
+  settings: [PluginSetting!]! @derivedFrom(field: "plugin")
+  proposals: [Proposal!]! @derivedFrom(field: "plugin")
+  votes: [Vote!]! @derivedFrom(field: "plugin")
+  members: [PluginMember!]! @derivedFrom(field: "plugin")
+}
+
+type PluginSetupLog {
+  id: ID!
+  chainId: Int!
+  event: String! @index
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  daoAddress: String! @index
+  pluginAddress: String! @index
+  preparedSetupId: String
+  appliedSetupId: String
+  pluginSetupRepo: String
+  sender: String
+  release: Int
+  build: Int
+  permissions: Json
+}
+
+type DaoPermission {
+  id: ID!
+  chainId: Int!
+  dao: Dao! @index
+  daoAddress: String! @index
+  blockNumber: Int!
+  transactionHash: String!
+  logIndex: Int!
+  permissionId: String! @index
+  whoAddress: String! @index
+  whereAddress: String! @index
+  event: PermissionEvent!
+  conditionAddress: String
+}
+
+type PluginSetting {
+  id: ID!
+  chainId: Int!
+  plugin: Plugin! @index
+  pluginAddress: String! @index
+  blockNumber: Int!
+  blockTimestamp: Int
+  transactionHash: String!
+  # Multisig settings
+  onlyListed: Boolean
+  minApprovals: Int
+  # TokenVoting / AddresslistVoting settings
+  votingMode: Int
+  supportThreshold: BigInt
+  minParticipation: BigInt
+  minDuration: BigInt
+  minProposerVotingPower: BigInt
+  # SPP settings
+  stages: Json
+  # Policy/Router settings
+  policy: Json
+}
+
+# ==============================
+# Governance Entities
+# ==============================
+
+type Proposal {
+  id: ID!
+  chainId: Int!
+  dao: Dao! @index
+  plugin: Plugin! @index
+  daoAddress: String! @index
+  pluginAddress: String! @index
+  proposalIndex: String! @index
+  blockNumber: Int!
+  blockTimestamp: Int
+  transactionHash: String!
+  creatorAddress: String! @index
+  metadataUri: String
+  title: String
+  summary: String
+  description: String
+  resources: Json
+  rawActions: Json
+  status: ProposalStatus!
+  startDate: BigInt
+  endDate: BigInt
+  executed: Boolean!
+  executedAt: Int
+  executedTxHash: String
+  voteCount: Int!
+  votes: [Vote!]! @derivedFrom(field: "proposal")
+}
+
+type Vote {
+  id: ID!
+  chainId: Int!
+  plugin: Plugin! @index
+  proposal: Proposal! @index
+  blockNumber: Int! @index
+  blockTimestamp: Int
+  transactionHash: String!
+  daoAddress: String! @index
+  pluginAddress: String! @index
+  proposalIndex: String! @index
+  memberAddress: String! @index
+  voteOption: Int
+  votingPower: BigInt
+}
+
+# ==============================
+# Member Entities
+# ==============================
+
+type PluginMember {
+  id: ID!
+  chainId: Int!
+  plugin: Plugin! @index
+  pluginAddress: String! @index
+  memberAddress: String! @index
+  daoAddress: String! @index
+}
+
+type TokenMember {
+  id: ID!
+  chainId: Int!
+  tokenAddress: String! @index
+  memberAddress: String! @index
+  votingPower: BigInt!
+}
+
+# ==============================
+# Token & Delegation
+# ==============================
+
+type Token {
+  id: ID!
+  chainId: Int!
+  address: String! @index
+  name: String
+  symbol: String
+  decimals: Int
+}
+
+type DelegateChangedEvent {
+  id: ID!
+  chainId: Int!
+  tokenAddress: String! @index
+  delegator: String! @index
+  fromDelegate: String!
+  toDelegate: String! @index
+  blockNumber: Int! @index
+  transactionHash: String!
+}
+
+type DelegateVotesChangedEvent {
+  id: ID!
+  chainId: Int!
+  tokenAddress: String! @index
+  delegate: String! @index
+  previousVotes: BigInt!
+  newVotes: BigInt!
+  blockNumber: Int! @index
+  transactionHash: String!
+}

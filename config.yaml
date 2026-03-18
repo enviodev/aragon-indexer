@@ -1,0 +1,214 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: aragon-indexer
+description: Aragon DAO Protocol Indexer
+
+field_selection:
+  transaction_fields:
+    - hash
+    - from
+    - to
+
+contracts:
+  # =============================================
+  # Phase 1: Core Registry Contracts (known addresses)
+  # =============================================
+  - name: DAORegistry
+    events:
+      - event: DAORegistered(address indexed dao, address indexed creator, string subdomain)
+
+  - name: PluginRepoRegistry
+    events:
+      - event: PluginRepoRegistered(string subdomain, address pluginRepo)
+
+  - name: PluginSetupProcessor
+    events:
+      - event: InstallationPrepared(address indexed sender, address indexed dao, bytes32 preparedSetupId, address indexed pluginSetupRepo, (uint8, uint16) versionTag, bytes data, address plugin, (address[], (uint8, address, address, address, bytes32)[]) preparedSetupData)
+      - event: InstallationApplied(address indexed dao, address indexed plugin, bytes32 preparedSetupId, bytes32 appliedSetupId)
+      - event: UpdatePrepared(address indexed sender, address indexed dao, bytes32 preparedSetupId, address indexed pluginSetupRepo, (uint8, uint16) versionTag, (address, address[], bytes) setupPayload, (address[], (uint8, address, address, address, bytes32)[]) preparedSetupData, bytes initData)
+      - event: UpdateApplied(address indexed dao, address indexed plugin, bytes32 preparedSetupId, bytes32 appliedSetupId)
+      - event: UninstallationPrepared(address indexed sender, address indexed dao, bytes32 preparedSetupId, address indexed pluginSetupRepo, (uint8, uint16) versionTag, (address, address[], bytes) setupPayload, (uint8, address, address, address, bytes32)[] permissions)
+      - event: UninstallationApplied(address indexed dao, address indexed plugin, bytes32 preparedSetupId)
+
+  # =============================================
+  # Phase 1: DAO Contract (factory-registered from DAORegistered)
+  # =============================================
+  - name: DAO
+    events:
+      - event: MetadataSet(bytes metadata)
+      - event: NativeTokenDeposited(address sender, uint256 amount)
+      - event: "Granted(bytes32 indexed permissionId, address indexed here, address where, address indexed who, address condition)"
+      - event: "Revoked(bytes32 indexed permissionId, address indexed here, address where, address indexed who)"
+      - event: "Executed(address indexed actor, bytes32 callId, (address, uint256, bytes)[] actions, uint256 allowFailureMap, uint256 failureMap, bytes[] execResults)"
+
+  # =============================================
+  # Phase 2: Governance Plugin Contracts (factory-registered)
+  # =============================================
+  - name: Multisig
+    events:
+      - event: MultisigSettingsUpdated(bool onlyListed, uint16 indexed minApprovals)
+      - event: MembersAdded(address[] members)
+      - event: MembersRemoved(address[] members)
+      - event: "ProposalCreated(uint256 indexed proposalId, address indexed creator, uint64 startDate, uint64 endDate, bytes metadata, (address, uint256, bytes)[] actions, uint256 allowFailureMap)"
+        name: MultisigProposalCreated
+      - event: ProposalExecuted(uint256 indexed proposalId)
+        name: MultisigProposalExecuted
+      - event: Approved(uint256 indexed proposalId, address indexed approver)
+
+  - name: TokenVoting
+    events:
+      - event: VotingSettingsUpdated(uint8 votingMode, uint32 supportThreshold, uint32 minParticipation, uint64 minDuration, uint256 minProposerVotingPower)
+      - event: "ProposalCreated(uint256 indexed proposalId, address indexed creator, uint64 startDate, uint64 endDate, bytes metadata, (address, uint256, bytes)[] actions, uint256 allowFailureMap)"
+        name: TokenVotingProposalCreated
+      - event: ProposalExecuted(uint256 indexed proposalId)
+        name: TokenVotingProposalExecuted
+      - event: VoteCast(uint256 indexed proposalId, address indexed voter, uint8 voteOption, uint256 votingPower)
+
+  - name: StagedProposalProcessor
+    events:
+      - event: ProposalResultReported(uint256 indexed proposalId, uint16 indexed stageId, address indexed body)
+      - event: ProposalCanceled(uint256 indexed proposalId, uint16 indexed stageId, address indexed sender)
+      - event: "ProposalEdited(uint256 indexed proposalId, uint16 indexed stageId, address indexed sender, bytes metadata, (address, uint256, bytes)[] actions)"
+      - event: ProposalAdvanced(uint256 indexed proposalId, uint16 indexed stageId, address indexed sender)
+      - event: "ProposalCreated(uint256 indexed proposalId, address indexed creator, uint64 startDate, uint64 endDate, bytes metadata, (address, uint256, bytes)[] actions, uint256 allowFailureMap)"
+        name: SPPProposalCreated
+      - event: ProposalExecuted(uint256 indexed proposalId)
+        name: SPPProposalExecuted
+      - event: MetadataSet(bytes metadata)
+        name: SPPMetadataSet
+
+  # =============================================
+  # Phase 3: Governance Token Contracts (factory-registered)
+  # =============================================
+  - name: GovernanceERC20
+    events:
+      - event: DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate)
+      - event: DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance)
+
+# =============================================
+# Chain Configurations
+# =============================================
+chains:
+  # --- Ethereum Mainnet ---
+  - id: 1
+    start_block: 16721812
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0x7a62da7B56fB3bfCdF70E900787010Bc4c9Ca42e
+      - name: PluginRepoRegistry
+        address:
+          - 0x5B3B36BdC9470963A2734D6a0d2F6a64C21C159f
+      - name: PluginSetupProcessor
+        address:
+          - 0xE978942c691e43f65c1B7c7F8f1dc8cDF061B13f
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- Ethereum Sepolia ---
+  - id: 11155111
+    start_block: 4415294
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0x308a1DC5020c4B5d992F5543a7236c465997fecB
+      - name: PluginRepoRegistry
+        address:
+          - 0x35B62715459cB60bf6dC17fF8cfe138EA305E7Ee
+      - name: PluginSetupProcessor
+        address:
+          - 0xC24188a73dc09aA7C721f96Ad8857B469C01dC9f
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- Polygon Mainnet ---
+  - id: 137
+    start_block: 40828385
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0x96E54098317631641703404C06A5afAD89da7373
+      - name: PluginRepoRegistry
+        address:
+          - 0xA03C2182af8eC460D498108C92E8638a580b94d4
+      - name: PluginSetupProcessor
+        address:
+          - 0x879D9dfe3F36d7684BeC1a2bB4Aa8E8871A7245B
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- Arbitrum Mainnet ---
+  - id: 42161
+    start_block: 145461945
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0xB5146Fd572C669ABC353902e43F47fda4609E38A
+      - name: PluginRepoRegistry
+        address:
+          - 0xCe0B4124dea6105bfB85fB4461c4D39f360E9ef3
+      - name: PluginSetupProcessor
+        address:
+          - 0x308a1DC5020c4B5d992F5543a7236c465997fecB
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- Base Mainnet ---
+  - id: 8453
+    start_block: 2094661
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0xeB98a71d69a1e12B62c10368D9dA5364CE0f7178
+      - name: PluginRepoRegistry
+        address:
+          - 0xB5eB5C011827C9F5787ceE3Abc72d247E36a5a0D
+      - name: PluginSetupProcessor
+        address:
+          - 0x91a851E9Ed7F2c6d41b15F76e4a88f5A37067cC9
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- zkSync Mainnet ---
+  - id: 324
+    start_block: 37460684
+    contracts:
+      - name: DAORegistry
+        address:
+          - 0xE7351bA0DDCc52249F27353893BcDBC74229e99d
+      - name: PluginRepoRegistry
+        address:
+          - 0xEa26fC4028D9293f453804b40F097F11974FdB79
+      - name: PluginSetupProcessor
+        address:
+          - 0x8E3e98ECF5CdBF2bEcCD91d3BA580D472df5A0cB
+      - name: DAO
+      - name: Multisig
+      - name: TokenVoting
+      - name: StagedProposalProcessor
+      - name: GovernanceERC20
+
+  # --- zkSync Sepolia (disabled - no HyperSync support) ---
+  # - id: 300
+  #   start_block: 2441175
+  #   contracts:
+  #     - name: DAORegistry
+  #       address: 0x9305Ecd8D3837F7AC4f425dA578a0D11352D317A
+  #     - name: PluginRepoRegistry
+  #       address: 0x22eE909B94c5FAeee67B7e187ca81E5A291A9EC0
+  #     - name: PluginSetupProcessor
+  #       address: 0xe2Ef39f1be2269644cBfa9b70003A143bF1fdf4d
