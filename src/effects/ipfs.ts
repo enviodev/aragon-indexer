@@ -14,11 +14,19 @@ export interface ProposalMetadata {
   resources?: Array<{ name: string; url: string }>;
 }
 
-const IPFS_GATEWAYS = [
+const DEDICATED_GATEWAY = process.env.IPFS_GATEWAY_URL
+  ? `${process.env.IPFS_GATEWAY_URL.replace(/\/$/, "")}/ipfs/`
+  : undefined;
+
+const PUBLIC_GATEWAYS = [
   "https://ipfs.io/ipfs/",
   "https://gateway.pinata.cloud/ipfs/",
   "https://cloudflare-ipfs.com/ipfs/",
 ];
+
+const IPFS_GATEWAYS = DEDICATED_GATEWAY
+  ? [DEDICATED_GATEWAY, ...PUBLIC_GATEWAYS]
+  : PUBLIC_GATEWAYS;
 
 async function fetchFromIpfs(cid: string): Promise<unknown | null> {
   for (const gateway of IPFS_GATEWAYS) {
@@ -53,7 +61,7 @@ export const fetchDaoMetadata = createEffect(
       null,
     ]),
     cache: true,
-    rateLimit: { calls: 5, per: 1000 },
+    rateLimit: { calls: 50, per: 1000 },
   },
   async ({ input: cid }) => {
     if (!cid) return null;
@@ -82,7 +90,7 @@ export const fetchProposalMetadata = createEffect(
       null,
     ]),
     cache: true,
-    rateLimit: { calls: 5, per: 1000 },
+    rateLimit: { calls: 50, per: 1000 },
   },
   async ({ input: cid }) => {
     if (!cid) return null;
