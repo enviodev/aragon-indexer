@@ -31,6 +31,9 @@ DAORegistry.DAORegistered.handler(async ({ event, context }) => {
     avatar: undefined,
     links: undefined,
     proposalCount: 0,
+    proposalsExecuted: 0,
+    uniqueVoters: 0,
+    voteCount: 0,
     memberCount: 0,
   });
 });

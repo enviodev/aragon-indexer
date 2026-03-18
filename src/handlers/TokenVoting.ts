@@ -1,6 +1,7 @@
 import { TokenVoting } from "generated";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
+import { trackPluginActivity } from "../utils/metrics";
 
 TokenVoting.VotingSettingsUpdated.handler(async ({ event, context }) => {
   const chainId = event.chainId;
@@ -82,6 +83,7 @@ TokenVoting.TokenVotingProposalCreated.handler(async ({ event, context }) => {
   const dao = await context.Dao.get(plugin.dao_id);
   if (dao) {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
+    await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
   }
 });
 
@@ -102,6 +104,11 @@ TokenVoting.TokenVotingProposalExecuted.handler(
       executedAt: event.block.timestamp,
       executedTxHash: event.transaction.hash,
     });
+
+    const dao = await context.Dao.get(proposal.dao_id);
+    if (dao) {
+      context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
+    }
   }
 );
 
@@ -132,9 +139,14 @@ TokenVoting.VoteCast.handler(async ({ event, context }) => {
     votingPower: event.params.votingPower,
   });
 
-  // Update vote count
+  // Update vote count + DAO metrics
   const proposal = await context.Proposal.get(proposalId);
   if (proposal) {
     context.Proposal.set({ ...proposal, voteCount: proposal.voteCount + 1 });
   }
+  const dao = await context.Dao.get(plugin.dao_id);
+  if (dao) {
+    context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
+  }
+  await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.voter, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
 });

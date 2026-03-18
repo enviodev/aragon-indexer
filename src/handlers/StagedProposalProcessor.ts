@@ -1,6 +1,7 @@
 import { StagedProposalProcessor } from "generated";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata, fetchDaoMetadata } from "../effects/ipfs";
+import { trackPluginActivity } from "../utils/metrics";
 
 StagedProposalProcessor.ProposalResultReported.handler(
   async ({ event, context }) => {
@@ -112,6 +113,7 @@ StagedProposalProcessor.SPPProposalCreated.handler(
     if (dao) {
       context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
     }
+    await trackPluginActivity(context as any, { chainId, pluginId: pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
   }
 );
 
@@ -132,6 +134,11 @@ StagedProposalProcessor.SPPProposalExecuted.handler(
       executedAt: event.block.timestamp,
       executedTxHash: event.transaction.hash,
     });
+
+    const dao = await context.Dao.get(proposal.dao_id);
+    if (dao) {
+      context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
+    }
   }
 );
 

@@ -1,6 +1,7 @@
 import { LockToVote } from "generated";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
+import { trackPluginActivity } from "../utils/metrics";
 
 LockToVote.LockToVoteVoteCast.handler(async ({ event, context }) => {
   const chainId = event.chainId;
@@ -33,6 +34,11 @@ LockToVote.LockToVoteVoteCast.handler(async ({ event, context }) => {
   if (proposal) {
     context.Proposal.set({ ...proposal, voteCount: proposal.voteCount + 1 });
   }
+  const dao = await context.Dao.get(plugin.dao_id);
+  if (dao) {
+    context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
+  }
+  await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.voter, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
 });
 
 LockToVote.VoteCleared.handler(async ({ event, context }) => {
@@ -102,6 +108,7 @@ LockToVote.LockToVoteProposalCreated.handler(async ({ event, context }) => {
   if (dao) {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
   }
+  await trackPluginActivity(context as any, { chainId, pluginId: pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
 });
 
 LockToVote.LockToVoteProposalExecuted.handler(async ({ event, context }) => {
@@ -120,6 +127,11 @@ LockToVote.LockToVoteProposalExecuted.handler(async ({ event, context }) => {
     executedAt: event.block.timestamp,
     executedTxHash: event.transaction.hash,
   });
+
+  const dao = await context.Dao.get(proposal.dao_id);
+  if (dao) {
+    context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
+  }
 });
 
 LockToVote.LockToVoteSettingsUpdated.handler(async ({ event, context }) => {

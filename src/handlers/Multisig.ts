@@ -1,6 +1,7 @@
 import { Multisig } from "generated";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
+import { trackPluginActivity } from "../utils/metrics";
 
 Multisig.MultisigSettingsUpdated.handler(async ({ event, context }) => {
   const chainId = event.chainId;
@@ -135,6 +136,7 @@ Multisig.MultisigProposalCreated.handler(async ({ event, context }) => {
   const dao = await context.Dao.get(plugin.dao_id);
   if (dao) {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
+    await trackPluginActivity(context as any, { chainId, pluginId: pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
   }
 });
 
@@ -154,6 +156,11 @@ Multisig.MultisigProposalExecuted.handler(async ({ event, context }) => {
     executedAt: event.block.timestamp,
     executedTxHash: event.transaction.hash,
   });
+
+  const dao = await context.Dao.get(proposal.dao_id);
+  if (dao) {
+    context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
+  }
 });
 
 Multisig.Approved.handler(async ({ event, context }) => {
@@ -183,9 +190,14 @@ Multisig.Approved.handler(async ({ event, context }) => {
     votingPower: undefined,
   });
 
-  // Update vote count
+  // Update vote count + DAO metrics
   const proposal = await context.Proposal.get(proposalId);
   if (proposal) {
     context.Proposal.set({ ...proposal, voteCount: proposal.voteCount + 1 });
   }
+  const dao = await context.Dao.get(plugin.dao_id);
+  if (dao) {
+    context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
+  }
+  await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.approver, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
 });

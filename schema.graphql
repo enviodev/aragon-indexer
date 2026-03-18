@@ -59,6 +59,9 @@ type Dao {
   avatar: String
   links: Json
   proposalCount: Int!
+  proposalsExecuted: Int!
+  uniqueVoters: Int!
+  voteCount: Int!
   memberCount: Int!
   plugins: [Plugin!]! @derivedFrom(field: "dao")
   permissions: [DaoPermission!]! @derivedFrom(field: "dao")
@@ -225,6 +228,19 @@ type TokenMember {
   tokenAddress: String! @index
   memberAddress: String! @index
   votingPower: BigInt!
+}
+
+type PluginActivityMetric {
+  id: ID!
+  chainId: Int!
+  plugin: Plugin! @index
+  pluginAddress: String! @index
+  memberAddress: String! @index
+  daoAddress: String! @index
+  voteCount: Int!
+  proposalCount: Int!
+  firstActivityBlock: Int
+  lastActivityBlock: Int
 }
 
 # ==============================
