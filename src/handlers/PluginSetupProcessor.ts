@@ -20,11 +20,10 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         break;
       case "tokenVoting":
         context.addTokenVoting(pluginAddress);
-        // TokenVoting plugins also have a governance token that emits delegation events.
-        // The token address is discovered later via RPC, but the plugin itself emits
-        // VotingSettingsUpdated which will tell us the type. We also register for
-        // GovernanceERC20 events since the token is deployed in the same tx.
-        context.addGovernanceERC20(pluginAddress);
+        // Note: only ONE registration per address is kept (last wins).
+        // We register as TokenVoting to capture proposals/votes/settings.
+        // GovernanceERC20 delegation events come from a SEPARATE token contract
+        // address — that will be handled in Phase 3 via RPC token discovery.
         break;
       case "spp":
         context.addStagedProposalProcessor(pluginAddress);
