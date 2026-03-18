@@ -1,6 +1,8 @@
 import { PluginSetupProcessor } from "generated";
 import { getPluginTypeFromRepo } from "../utils/pluginRepos";
 import { discoverVeContracts, discoverLockManagerAddress } from "../utils/veDiscovery";
+import { detectPluginByBytecode } from "../utils/bytecodeDetector";
+import { fetchTokenMetadata } from "../effects/rpc";
 
 // =============================================
 // Contract Registration — register plugin addresses for dynamic indexing
@@ -92,10 +94,38 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
       case "capitalDistributor":
         context.addCapitalDistributor(pluginAddress);
         break;
-      default:
-        // Unknown plugin repo — register for Multisig as fallback
-        context.addMultisig(pluginAddress);
+      case "router":
+      case "claimer":
+        // Router/Claimer plugins — no specific contract events yet
         break;
+      default: {
+        // Unknown plugin repo — fall back to bytecode detection via RPC
+        try {
+          const detected = await detectPluginByBytecode(pluginAddress, event.chainId);
+          switch (detected) {
+            case "multisig": context.addMultisig(pluginAddress); break;
+            case "tokenVoting": {
+              context.addTokenVoting(pluginAddress);
+              const tk = getTokenFromHelpers();
+              if (tk) context.addGovernanceERC20(tk);
+              break;
+            }
+            case "spp": context.addStagedProposalProcessor(pluginAddress); break;
+            case "lockToVote": {
+              context.addLockToVote(pluginAddress);
+              try {
+                const lm = await discoverLockManagerAddress(pluginAddress, event.chainId);
+                if (lm) context.addLockManager(lm as `0x${string}`);
+              } catch {}
+              break;
+            }
+            case "gauge": context.addGaugeVoter(pluginAddress); break;
+            case "capitalDistributor": context.addCapitalDistributor(pluginAddress); break;
+            // admin, router, claimer, unknown — no contract registration needed
+          }
+        } catch { /* bytecode detection failed — skip */ }
+        break;
+      }
     }
   }
 );
@@ -136,9 +166,14 @@ PluginSetupProcessor.InstallationPrepared.handler(
       permissions: undefined,
     });
 
-    // Detect plugin type from repo address
-    const pluginType = getPluginTypeFromRepo(event.params.pluginSetupRepo);
-    const interfaceType = pluginType ?? "unknown";
+    // Detect plugin type: repo mapping first, bytecode fallback for unknowns
+    type InterfaceType = "tokenVoting" | "multisig" | "admin" | "addresslistVoting" | "spp" | "lockToVote" | "gauge" | "capitalDistributor" | "router" | "claimer" | "unknown";
+    let interfaceType: InterfaceType = (getPluginTypeFromRepo(event.params.pluginSetupRepo) ?? "unknown") as InterfaceType;
+    if (interfaceType === "unknown") {
+      try {
+        interfaceType = await detectPluginByBytecode(pluginAddress, chainId) as InterfaceType;
+      } catch { /* keep as unknown */ }
+    }
 
     // Extract token address from helpers for TokenVoting plugins
     const helpers = event.params.preparedSetupData[0];
@@ -179,18 +214,22 @@ PluginSetupProcessor.InstallationPrepared.handler(
         subPlugins: undefined,
       });
 
-      // Create Token entity if we have a token address
+      // Create Token entity with metadata if we have a token address
       if (tokenAddress) {
         const tokenId = `${chainId}-${tokenAddress}`;
         const existingToken = await context.Token.get(tokenId);
         if (!existingToken) {
+          const metadata = await context.effect(fetchTokenMetadata, {
+            tokenAddress,
+            chainId,
+          });
           context.Token.set({
             id: tokenId,
             chainId,
             address: tokenAddress,
-            name: undefined,
-            symbol: undefined,
-            decimals: undefined,
+            name: metadata?.name,
+            symbol: metadata?.symbol,
+            decimals: metadata?.decimals,
           });
         }
       }

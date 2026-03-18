@@ -34,6 +34,11 @@ const queueAbi = parseAbi(["function queue() view returns (address)"]);
 const lockNFTAbi = parseAbi(["function lockNFT() view returns (address)"]);
 const tokenAbi = parseAbi(["function token() view returns (address)"]);
 const lockManagerAbi = parseAbi(["function lockManager() view returns (address)"]);
+const erc20Abi = parseAbi([
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+]);
 
 /**
  * Discover VotingEscrow addresses from a token's adapter contract.
@@ -85,6 +90,46 @@ export const discoverVotingEscrow = createEffect(
         exitQueueAddress: exitQueueAddress.status === "fulfilled" ? exitQueueAddress.value : undefined,
         nftLockAddress: nftLockAddress.status === "fulfilled" ? nftLockAddress.value : undefined,
         underlyingToken: underlyingToken.status === "fulfilled" ? underlyingToken.value : undefined,
+      };
+    } catch {
+      return null;
+    }
+  }
+);
+
+/**
+ * Fetch ERC20 token metadata (name, symbol, decimals) via RPC.
+ */
+export const fetchTokenMetadata = createEffect(
+  {
+    name: "fetchTokenMetadata",
+    input: S.schema({ tokenAddress: S.string, chainId: S.number }),
+    output: S.union([
+      S.schema({
+        name: S.optional(S.string),
+        symbol: S.optional(S.string),
+        decimals: S.optional(S.number),
+      }),
+      null,
+    ]),
+    cache: true,
+    rateLimit: false,
+  },
+  async ({ input }) => {
+    try {
+      const client = getClient(input.chainId);
+      const addr = input.tokenAddress as `0x${string}`;
+
+      const [name, symbol, decimals] = await Promise.allSettled([
+        client.readContract({ address: addr, abi: erc20Abi, functionName: "name" }),
+        client.readContract({ address: addr, abi: erc20Abi, functionName: "symbol" }),
+        client.readContract({ address: addr, abi: erc20Abi, functionName: "decimals" }),
+      ]);
+
+      return {
+        name: name.status === "fulfilled" ? name.value : undefined,
+        symbol: symbol.status === "fulfilled" ? symbol.value : undefined,
+        decimals: decimals.status === "fulfilled" ? Number(decimals.value) : undefined,
       };
     } catch {
       return null;
