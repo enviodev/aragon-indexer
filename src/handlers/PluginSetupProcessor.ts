@@ -1,19 +1,47 @@
 import { PluginSetupProcessor } from "generated";
+import { getPluginTypeFromRepo } from "../utils/pluginRepos";
 
 // =============================================
 // Contract Registration — register plugin addresses for dynamic indexing
-// Must be defined BEFORE handlers
+// Must be defined BEFORE handlers.
+// Only ONE contract type can be registered per address — the last call wins.
+// We use the pluginSetupRepo address to detect the correct type.
 // =============================================
 
 PluginSetupProcessor.InstallationPrepared.contractRegister(
-  async ({ event, context }) => {
+  ({ event, context }) => {
     const pluginAddress = event.params.plugin;
-    // Register plugin address for all dynamic contract types
-    // HyperIndex will only index events matching the contract's ABI
-    context.addMultisig(pluginAddress);
-    context.addTokenVoting(pluginAddress);
-    context.addStagedProposalProcessor(pluginAddress);
-    context.addGovernanceERC20(pluginAddress);
+    const repoAddress = event.params.pluginSetupRepo;
+    const pluginType = getPluginTypeFromRepo(repoAddress);
+
+    switch (pluginType) {
+      case "multisig":
+        context.addMultisig(pluginAddress);
+        break;
+      case "tokenVoting":
+        context.addTokenVoting(pluginAddress);
+        // TokenVoting plugins also have a governance token that emits delegation events.
+        // The token address is discovered later via RPC, but the plugin itself emits
+        // VotingSettingsUpdated which will tell us the type. We also register for
+        // GovernanceERC20 events since the token is deployed in the same tx.
+        context.addGovernanceERC20(pluginAddress);
+        break;
+      case "spp":
+        context.addStagedProposalProcessor(pluginAddress);
+        break;
+      case "admin":
+        // Admin plugin doesn't emit proposal/vote events we track yet
+        break;
+      case "addresslistVoting":
+        // Uses same events as TokenVoting (VotingSettingsUpdated, ProposalCreated, etc.)
+        context.addTokenVoting(pluginAddress);
+        break;
+      default:
+        // Unknown plugin repo — register for all types to catch events
+        // This is a fallback for 3rd party plugins
+        context.addMultisig(pluginAddress);
+        break;
+    }
   }
 );
 
@@ -53,6 +81,10 @@ PluginSetupProcessor.InstallationPrepared.handler(
       permissions: undefined,
     });
 
+    // Detect plugin type from repo address
+    const pluginType = getPluginTypeFromRepo(event.params.pluginSetupRepo);
+    const interfaceType = pluginType ?? "unknown";
+
     // Create plugin in preInstall status
     const pluginId = `${chainId}-${pluginAddress}`;
     const existingPlugin = await context.Plugin.get(pluginId);
@@ -63,7 +95,7 @@ PluginSetupProcessor.InstallationPrepared.handler(
         address: pluginAddress,
         dao_id: daoId,
         daoAddress,
-        interfaceType: "unknown",
+        interfaceType,
         status: "preInstall",
         isSupported: false,
         blockNumber: event.block.number,
