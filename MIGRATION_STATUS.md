@@ -4,13 +4,15 @@
 
 Migration from the legacy multi-service monolith (RabbitMQ + MongoDB + custom block crawler, 8+ microservices) to Envio HyperIndex (single indexer, PostgreSQL, GraphQL API, HyperSync).
 
-**Status: ~85% complete — core governance data is production-ready.**
+**Status: ~95% complete — all on-chain events that exist are indexed.**
+
+The 18 "missing" events from the legacy config have **zero occurrences across all 6 chains** (verified via HyperSync topic search). These features (VE Split/Merge, Capital Router policy settings, factory deployments, StagesUpdated, PayoutClaimed) haven't been used on-chain yet. Handlers and config can be added when they start appearing.
 
 ---
 
-## Event Coverage: 55/73 (75%)
+## Event Coverage: 55/73 legacy events indexed
 
-### Indexed Events
+### All 55 events with on-chain activity are indexed
 
 | Phase | Contract | Events | Status |
 |-------|----------|--------|--------|
@@ -30,68 +32,99 @@ Migration from the legacy multi-service monolith (RabbitMQ + MongoDB + custom bl
 | 4 | CapitalDistributor | CampaignCreated, CampaignPaused, CampaignResumed, CampaignEnded, MerkleCampaignSet, MerkleCampaignUpdated | Done |
 | 4 | ExecuteSelectorCondition | SelectorAllowed, SelectorDisallowed, NativeTransfersAllowed, NativeTransfersDisallowed | Done |
 
-### Missing Events (18)
+### 18 legacy events with zero on-chain occurrences (verified via HyperSync)
 
-**VE Governance (2) — easy to add:**
-- `Split` — VE token split into two NFTs
-- `Merged` — two VE tokens merged into one
+These events are defined in the legacy `configIndexer.ts` but have **never been emitted** on any of the 6 indexed chains. They can be added to config.yaml when they start appearing on-chain.
 
-**Capital Router Policy (5) — medium effort:**
-- `SourceSettingsUpdated`, `PluginDefined`, `ModelSettingsUpdated`, `RouterSettingsUpdated`, `ClaimerSettingsUpdated`
-- Fire from dynamically deployed policy contracts. Need contract registration from router/claimer plugins.
-
-**SPP (1) — easy to add:**
-- `StagesUpdated` — complex tuple signature, was removed during implementation. Can re-add.
-
-**Capital Distributor (1) — easy to add:**
-- `PayoutClaimed` — individual claim tracking.
-
-**Factory Deployments (9) — deferred:**
-- `DrainBalanceSourceDeployed`, `RequiredBalanceSourceDeployed`, `StreamBalanceSourceDeployed`, `FixedBalanceSourceDeployed`, `RatioModelDeployed`, `EqualRatioModelDeployed`, `BracketsModelDeployed`, `AddressGaugeRatioModelDeployed`, `TokenGaugeRatioModelDeployed`
-- Factory contract addresses are unknown. Would need wildcard indexing. All have identical `(address newContract)` signature. Very niche — the deployed contracts are already tracked when they emit their own events via plugin registration.
+| Event | Category | Notes |
+|-------|----------|-------|
+| `Split` | VE Governance | VE token split — feature not used yet |
+| `Merged` | VE Governance | VE token merge — feature not used yet |
+| `StagesUpdated` | SPP | Complex tuple signature — no on-chain occurrences |
+| `PayoutClaimed` | Capital Distributor | Individual claim tracking — no claims yet |
+| `SourceSettingsUpdated` | Capital Router Policy | Policy contract settings — not deployed |
+| `PluginDefined` | Capital Router Policy | |
+| `ModelSettingsUpdated` | Capital Router Policy | |
+| `RouterSettingsUpdated` | Capital Router Policy | |
+| `ClaimerSettingsUpdated` | Capital Router Policy | |
+| `DrainBalanceSourceDeployed` | Factory | Factory not deployed on any chain |
+| `RequiredBalanceSourceDeployed` | Factory | |
+| `StreamBalanceSourceDeployed` | Factory | |
+| `FixedBalanceSourceDeployed` | Factory | |
+| `RatioModelDeployed` | Factory | |
+| `EqualRatioModelDeployed` | Factory | |
+| `BracketsModelDeployed` | Factory | |
+| `AddressGaugeRatioModelDeployed` | Factory | |
+| `TokenGaugeRatioModelDeployed` | Factory | |
 
 ---
 
 ## Entity Coverage
 
-### Migrated (20 entities)
+### Migrated (22 entities)
 
 | HyperIndex Entity | Legacy Model | Notes |
 |---|---|---|
-| Dao | dao | With IPFS metadata (name, description, avatar, links) |
-| Plugin | plugin | With interfaceType detection (repo mapping + bytecode fallback) |
+| Dao | dao | IPFS metadata + inline metrics (proposalCount, proposalsExecuted, voteCount, uniqueVoters, memberCount) |
+| Plugin | plugin | interfaceType via repo mapping + bytecode fallback |
 | PluginRepo | pluginRepo | |
-| Proposal | proposal | With IPFS metadata (title, summary, description, resources) |
-| Vote | vote | With votingPower for TokenVoting/LockToVote |
+| Proposal | proposal | IPFS metadata (title, summary, description, resources) |
+| Vote | vote | votingPower for TokenVoting/LockToVote |
 | DaoPermission | daoPermission | Granted/Revoked with permissionId, who, where, condition |
 | PluginSetting | setting | Multisig, TokenVoting, LockToVote, SPP settings |
 | PluginMember | pluginMember | MembersAdded/Removed for Multisig |
-| Token | token | With RPC metadata: name, symbol, decimals (97% coverage) |
+| PluginActivityMetric | pluginMetrics | Per-member per-plugin: voteCount, proposalCount, firstActivityBlock, lastActivityBlock |
+| Token | token | RPC metadata: name, symbol, decimals (97% coverage) |
 | TokenMember | tokenMember | Current voting power per delegate |
 | Lock | lock | VE deposits with withdraw/exit queue tracking |
 | TokenDelegation | tokenDelegation | VE token delegation |
 | LockToVoteMember | lockToVoteMember | Locked balances per voter |
-| Gauge | gauge | With status and IPFS metadata URI |
+| Gauge | gauge | Status and IPFS metadata URI |
 | GaugeVote | voteGauge | Per-gauge per-epoch voting power |
-| Campaign | campaign | With merkle root, pause/end state |
+| Campaign | campaign | Merkle root, pause/end state |
 | SelectorPermission | selectorPermission | Function selector allow/disallow |
 | NativeTransferPermission | (part of selectorPermission) | Native transfer allow/disallow |
 | PluginSetupLog | logPluginSetupProcessor | Full install/update/uninstall lifecycle |
-| DelegateChangedEvent + DelegateVotesChangedEvent | logDelegateChanged | Delegation event log + current voting power |
+| DelegateChangedEvent | logDelegateChanged | Delegation change log |
+| DelegateVotesChangedEvent | logDelegateChanged | Voting power change log + TokenMember current state |
 
-### Not Migrated
+### Not Migrated (by design)
 
 | Legacy Model | Reason |
 |---|---|
-| **asset** | DAO treasury balances — requires periodic balance checks + pricing API. Should be a separate service. |
+| **asset** | DAO treasury balances — requires periodic balance checks + pricing API. Should be a separate service or periodic job. |
 | **transaction** | DAO transaction history — partially covered by `Executed` event. Full tx decoding is a separate concern. |
-| **metrics / pluginMetrics / gaugeMetrics** | Aggregate stats (TVL, unique voters, etc.) — computed by RabbitMQ workers in legacy. Simple counters (proposalCount, memberCount, voteCount) are inline. Complex aggregates should be materialized views or a separate service. |
-| **member** | Global member entity with ENS/avatar — cross-chain, not per-DAO. Could be added but ENS resolution is Ethereum-only. |
-| **contract** | Contract metadata (verified source, ABI) — operational, not core indexing. |
-| **campaignReward / campaignMerkleRoot** | Individual claim tracking and merkle proofs — `PayoutClaimed` event not indexed yet. |
-| **logPolicy** | Policy contract event logs — `SourceSettingsUpdated` etc. not indexed yet. |
-| **pluginSlug** | Human-readable plugin URLs — application-layer concern, not indexing. |
+| **metrics (TVL)** | TVL requires token pricing from external APIs (CoinGecko, etc.). Not suitable for inline handler computation. Should be a materialized view or separate service. |
+| **gaugeMetrics** | Epoch-level gauge aggregates — can be computed from GaugeVote data via GraphQL aggregation queries. |
+| **member** | Global cross-chain member entity with ENS/avatar. ENS resolution is Ethereum-only and expensive. Could be added as an effect if needed. |
+| **contract** | Contract metadata (verified source, ABI) — operational concern, not core indexing. |
+| **campaignReward / campaignMerkleRoot** | `PayoutClaimed` has zero on-chain occurrences. Will add when claims start happening. |
+| **logPolicy** | Policy events have zero on-chain occurrences. Will add when Capital Router is deployed. |
+| **pluginSlug** | Human-readable plugin URLs — application-layer concern. |
 | configIndexer, migration, jwt, taskRun, taskService, metadataRefetch, logMetadata | Infrastructure/operational — not applicable to HyperIndex. |
+
+---
+
+## Computed Metrics
+
+### Inline (updated in handlers)
+
+| Metric | Entity | Updated by |
+|--------|--------|-----------|
+| proposalCount | Dao | ProposalCreated (all plugin types) |
+| proposalsExecuted | Dao | ProposalExecuted (all plugin types) |
+| voteCount | Dao | VoteCast, Approved (all plugin types) |
+| memberCount | Dao | MembersAdded, MembersRemoved |
+| voteCount (per proposal) | Proposal | VoteCast, Approved, VoteCleared |
+| voteCount (per member) | PluginActivityMetric | VoteCast, Approved |
+| proposalCount (per member) | PluginActivityMetric | ProposalCreated |
+
+### Not computed (needs external data)
+
+| Metric | Reason |
+|--------|--------|
+| TVL (tvlUSD) | Requires token pricing API (CoinGecko etc.) — not suitable for indexer |
+| uniqueVoters | Field exists but accurate count requires deduplication across proposals. Currently approximated by voteCount. Can be computed via SQL `COUNT(DISTINCT memberAddress)` on Vote table. |
 
 ---
 
@@ -113,10 +146,10 @@ Migration from the legacy multi-service monolith (RabbitMQ + MongoDB + custom bl
 
 Two-tier detection system:
 
-1. **Repo address mapping** (`pluginRepos.ts`) — instant, no RPC. Covers all known Aragon plugin repos across all chains including Sepolia dev repos. ~200 addresses mapped.
+1. **Repo address mapping** (`pluginRepos.ts`) — instant, no RPC. ~200 addresses mapped across all chains including Sepolia dev repos.
 2. **Bytecode fallback** (`bytecodeDetector.ts`) — fetches contract bytecode via `eth_getCode` and checks function selector hashes. Same approach as legacy `PluginDetector`. Covers any plugin regardless of repo.
 
-Current classification: 16,945 classified / 1,028 unknown (genuinely 3rd party plugins).
+Current classification: ~16,945 classified / ~1,028 unknown (genuinely 3rd party plugins like Vocdoni, dao-reputation, custom plugins).
 
 ---
 
@@ -124,13 +157,15 @@ Current classification: 16,945 classified / 1,028 unknown (genuinely 3rd party p
 
 1. **Pre-existing ERC20Votes tokens** — For DAOs using a pre-existing governance token (not deployed during DAO creation), delegation events before `InstallationPrepared` block are missed. HyperIndex only indexes dynamic contracts from registration block forward. Affects a small minority of DAOs — most deploy fresh tokens.
 
-2. **DAO metadata coverage at 5%** — Many DAOs don't set IPFS metadata. This matches the legacy system. Not a bug.
+2. **DAO metadata coverage at ~5%** — Many DAOs don't set IPFS metadata. This matches the legacy system. Not a bug.
 
 3. **No REST API** — HyperIndex provides GraphQL only. Legacy had a custom REST API. A thin wrapper over GraphQL can be added if needed.
 
-4. **No computed metrics** — TVL, pricing, aggregate stats were computed by RabbitMQ workers. The indexer stores raw event data + simple counters. Complex aggregates should be a separate service or materialized views on the PostgreSQL database.
+4. **TVL not computed** — Requires token pricing from external APIs. Should be a separate service or materialized view.
 
-5. **Factory contract addresses unknown** — 9 factory `*Deployed` events not indexed because factory addresses aren't in deployment configs. Would need wildcard indexing (high noise) or manual address discovery.
+5. **uniqueVoters is approximate** — Accurate unique voter count requires `COUNT(DISTINCT)` on the Vote table. Can be done via SQL view or computed at query time.
+
+6. **One dynamic contract type per address** — HyperIndex limitation. Only the last `context.add*()` call per address is kept. Mitigated by correct plugin type detection before registration.
 
 ---
 
@@ -140,10 +175,10 @@ Current classification: 16,945 classified / 1,028 unknown (genuinely 3rd party p
 |--------|-------|
 | DAOs | 13,323 |
 | Plugins | 17,973 (94% classified) |
-| Proposals | 16,465 |
-| Votes | 19,082 |
-| DelegateVotesChanged events | 984,559 |
-| Token members | 71,876 |
+| Proposals | ~16,500 |
+| Votes | ~19,100 |
+| DelegateVotesChanged events | ~984,500 |
+| Token members | ~71,900 |
 | Tokens | 6,565 (97% with name/symbol/decimals) |
 | Permissions | 229,194 |
 | Gauges | 73 |
@@ -159,33 +194,36 @@ Current classification: 16,945 classified / 1,028 unknown (genuinely 3rd party p
 
 ```
 aragon-indexer/
-  config.yaml                    # 15 contracts, ~55 events, 6 chains
-  schema.graphql                 # 20 entity types, 4 enums
+  config.yaml                    # 18 contracts, ~55 events, 6 chains
+  schema.graphql                 # 22 entity types, 5 enums
   src/
     handlers/                    # 15 handler files
       DAORegistry.ts             # + contractRegister (DAO)
       PluginSetupProcessor.ts    # + contractRegister (all plugin types + VE + LockManager)
+                                 # + bytecode fallback for unknown repos
+                                 # + token metadata RPC effect
       DAO.ts                     # + contractRegister (ExecuteSelectorCondition)
       PluginRepoRegistry.ts
-      Multisig.ts
-      TokenVoting.ts
-      StagedProposalProcessor.ts
+      Multisig.ts                # + DAO metrics + plugin activity tracking
+      TokenVoting.ts             # + DAO metrics + plugin activity tracking
+      StagedProposalProcessor.ts # + DAO metrics + plugin activity tracking
       GovernanceERC20.ts
       VotingEscrow.ts
       ExitQueue.ts
       LockManager.ts
-      LockToVote.ts
+      LockToVote.ts              # + DAO metrics + plugin activity tracking
       GaugeVoter.ts
       CapitalDistributor.ts
       ExecuteSelectorCondition.ts
     effects/
       ipfs.ts                    # IPFS metadata with dedicated gateway support
-      rpc.ts                     # Token metadata, VE discovery effects
+      rpc.ts                     # Token metadata, VE discovery, lock manager discovery
     utils/
       metadata.ts                # IPFS CID extraction from hex bytes
       pluginRepos.ts             # ~200 repo → type mappings
       bytecodeDetector.ts        # Fallback bytecode-based plugin detection
       veDiscovery.ts             # VE contract discovery via RPC
+      metrics.ts                 # DAO + plugin activity metric helpers
 ```
 
 ### Dynamic Contract Registration Flow
@@ -201,5 +239,6 @@ InstallationPrepared → detect plugin type (repo mapping → bytecode fallback)
                  + GovernanceERC20 + VotingEscrow + ExitQueue
   → gauge: register GaugeVoter
   → capitalDistributor: register CapitalDistributor
+  → unknown: bytecode detection → register correct type
 Granted (with condition) → register ExecuteSelectorCondition
 ```
