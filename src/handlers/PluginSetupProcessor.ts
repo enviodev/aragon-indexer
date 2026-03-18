@@ -13,6 +13,7 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
     const pluginAddress = event.params.plugin;
     const repoAddress = event.params.pluginSetupRepo;
     const pluginType = getPluginTypeFromRepo(repoAddress);
+    const helpers = event.params.preparedSetupData[0]; // address[] helpers
 
     switch (pluginType) {
       case "multisig":
@@ -20,10 +21,22 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         break;
       case "tokenVoting":
         context.addTokenVoting(pluginAddress);
-        // Note: only ONE registration per address is kept (last wins).
-        // We register as TokenVoting to capture proposals/votes/settings.
-        // GovernanceERC20 delegation events come from a SEPARATE token contract
-        // address — that will be handled in Phase 3 via RPC token discovery.
+        // Register the GovernanceERC20 token for delegation events.
+        // Token is a DIFFERENT address from the plugin, so no overwrite.
+        // OSx v1.0/v1.3: helpers = [token] (length 1, token at index 0)
+        // New token-voting-plugin: helpers = [VotingPowerCondition, token] (length 2, token at index 1)
+        //
+        // EDGE CASE: For pre-existing ERC20Votes tokens used directly (not newly
+        // deployed), we only capture delegation events from InstallationPrepared block
+        // onward — historical events before DAO creation are missed. This is a
+        // HyperIndex limitation (no "go back in time" for dynamic contracts).
+        // For newly deployed tokens (majority of cases), same-block coverage
+        // ensures we capture everything from block zero of the token's existence.
+        if (helpers.length === 1 && helpers[0]) {
+          context.addGovernanceERC20(helpers[0]);
+        } else if (helpers.length >= 2 && helpers[helpers.length - 1]) {
+          context.addGovernanceERC20(helpers[helpers.length - 1]!);
+        }
         break;
       case "spp":
         context.addStagedProposalProcessor(pluginAddress);
@@ -84,6 +97,17 @@ PluginSetupProcessor.InstallationPrepared.handler(
     const pluginType = getPluginTypeFromRepo(event.params.pluginSetupRepo);
     const interfaceType = pluginType ?? "unknown";
 
+    // Extract token address from helpers for TokenVoting plugins
+    const helpers = event.params.preparedSetupData[0];
+    let tokenAddress: string | undefined;
+    if (interfaceType === "tokenVoting") {
+      if (helpers.length === 1) {
+        tokenAddress = helpers[0];
+      } else if (helpers.length >= 2) {
+        tokenAddress = helpers[helpers.length - 1];
+      }
+    }
+
     // Create plugin in preInstall status
     const pluginId = `${chainId}-${pluginAddress}`;
     const existingPlugin = await context.Plugin.get(pluginId);
@@ -104,13 +128,29 @@ PluginSetupProcessor.InstallationPrepared.handler(
         release: Number(event.params.versionTag[0]),
         build: Number(event.params.versionTag[1]),
         subdomain: undefined,
-        tokenAddress: undefined,
+        tokenAddress,
         votingEscrow: undefined,
         conditionAddress: undefined,
         lockManagerAddress: undefined,
         permissions: undefined,
         subPlugins: undefined,
       });
+
+      // Create Token entity if we have a token address
+      if (tokenAddress) {
+        const tokenId = `${chainId}-${tokenAddress}`;
+        const existingToken = await context.Token.get(tokenId);
+        if (!existingToken) {
+          context.Token.set({
+            id: tokenId,
+            chainId,
+            address: tokenAddress,
+            name: undefined,
+            symbol: undefined,
+            decimals: undefined,
+          });
+        }
+      }
     }
   }
 );
