@@ -53,7 +53,36 @@ addRepo("0x5BC82E4473e01f57716FC7f1361d424B54968e17", "addresslistVoting"); // z
 
 // --- StagedProposalProcessor ---
 addRepo("0xE67b8E026d190876704292442A38163Ce6945d6b", "spp"); // Ethereum
-addRepo("0x9C61D4266815bdd32f4D2885B6CF5763F449050B", "spp"); // Sepolia
+addRepo("0x421FF506E4DC17356965565688D62b55Bf2bf0a5", "spp"); // Ethereum (alt)
+addRepo("0xda62D32C14E8CA78958d6fdC0142A575b0cd6Ad4", "spp"); // Sepolia
+addRepo("0x9C61D4266815bdd32f4D2885B6CF5763F449050B", "spp"); // Sepolia (alt)
+addRepo("0xc36fE143bd829a80df458Bd9ab52299Df985DC6F", "spp"); // Polygon
+addRepo("0xe3B00403Cd8cBee7af01961c25220289a4Cc5753", "spp"); // Arbitrum
+addRepo("0x3C13098D4e2FE9aCb2fCEb3EE4fBBe33405eD39D", "spp"); // Base
+addRepo("0xE294451cB4B7aA4a8136dA6474b8b4C6C5a69973", "spp"); // zkSync
+
+// --- LockToVote ---
+addRepo("0x0f4FBD2951Db08B45dE16e7519699159aE1b4bb7", "lockToVote"); // Ethereum
+addRepo("0x4E9c4d138f5E3B5D28b3F0e66749899738AEf8a2", "lockToVote"); // Ethereum (lock-to-vote)
+addRepo("0x70927fA8b84777c79A9b9CC011BfbE08B04eB1e4", "lockToVote"); // Ethereum (lock-to-vote-plugin)
+addRepo("0x499f7c3E8778D07BbBdc434dF06a985e54d7ed35", "lockToVote"); // Sepolia
+addRepo("0x0D0ce1B8569d400b98556967545A29615b66Cd0C", "lockToVote"); // Sepolia (lock-to-vote)
+addRepo("0x326D2b4cC92281D6fF757D79af98bE255BA45cE1", "lockToVote"); // Polygon
+addRepo("0xd883239CdA10a48484D0a7EEc8fD0A80e182fFA4", "lockToVote"); // Polygon (lock-to-vote)
+addRepo("0xe92eF55cCbB3ac48f54f2FcDC4c49379CB01C57F", "lockToVote"); // Arbitrum
+addRepo("0xe119b829A80F1dfb4EBfe778D57f3F90F3dcbDAc", "lockToVote"); // Arbitrum (lock-to-vote)
+addRepo("0x05ECA5ab78493Bf812052B0211a206BCBA03471B", "lockToVote"); // Base
+addRepo("0x9Bb1234b8e163412977C25E6aA7893eFbC3c884F", "lockToVote"); // Base (lock-to-vote)
+addRepo("0xd0f0Bc285F4D27417ECd8C027BB6746690ba72b2", "lockToVote"); // zkSync
+
+// --- Gauge Voter ---
+addRepo("0x5F97Ee2E3441FAB942034881e2b833C6FE4F282e", "gauge"); // Base (peaq)
+addRepo("0x7BEf4dFCAB5a1B8C9A02CD032ddD4629b767D34c", "gauge"); // Base (peaq-simple)
+addRepo("0x570C25470827e35C698F5de2a1eb0B3987dFc908", "gauge"); // Base (ynd)
+
+// --- Capital Distributor ---
+addRepo("0x09563BB7D619B4cdd7416e5178eaa9b0486845eE", "capitalDistributor"); // Ethereum
+addRepo("0x9dd3f94E33b748b09081378d7Fd4dFfF4970b290", "capitalDistributor"); // Ethereum (cryptex)
 
 /**
  * Detect plugin type from pluginSetupRepo address.
