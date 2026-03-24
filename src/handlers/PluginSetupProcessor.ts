@@ -37,11 +37,11 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         // New token-voting-plugin: helpers = [VotingPowerCondition, token] (length 2, token at index 1)
         //
         // EDGE CASE: For pre-existing ERC20Votes tokens used directly (not newly
-        // deployed), we only capture delegation events from InstallationPrepared block
-        // onward — historical events before DAO creation are missed. This is a
-        // HyperIndex limitation (no "go back in time" for dynamic contracts).
-        // For newly deployed tokens (majority of cases), same-block coverage
-        // ensures we capture everything from block zero of the token's existence.
+        // deployed), dynamic registration only captures delegation events from
+        // InstallationPrepared block onward. To fix this, known pre-existing tokens
+        // (61 across all chains, ~1.5% of total) are hardcoded as static addresses
+        // in config.yaml with coverage from chain start_block. If a new pre-existing
+        // token is discovered, add it to the static list and re-index.
         const tokenAddress = getTokenFromHelpers();
         if (tokenAddress) {
           context.addGovernanceERC20(tokenAddress);

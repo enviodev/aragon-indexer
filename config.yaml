@@ -176,6 +176,23 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+        # Pre-existing tokens: deployed before their DAO's InstallationPrepared block.
+        # Static addresses ensure delegation events are captured from chain start_block.
+        # Dynamically registered tokens continue to work alongside these.
+        address:
+          - 0x2aF84A028aAc5606191F31d281940aE23801B2C7  # Ducat
+          - 0x3c3BA217880695097874D713975a23aC8AE142Ef  # veTEST Votes
+          - 0x3c571E6dc8F3249E7B05c4ae4973C58750a53E7C  # GutDAO
+          - 0x56B74759b9C5E2415A1Dc73c261d79Fc4aCc79CE  # NANA POINTS
+          - 0x5F46FB778fA35D0C9C904851AA25C475a55c75eE  # ZephyrToken
+          - 0x687c24313c5F7B04Fc4cca2764ac0f3E1d792e2A  # Ducat
+          - 0x71616E8C62aDF18C0645188AE04b90b446a860A7  # TokenTapas
+          - 0x781f9F05ceCCAC891fCDFFFeA88BD7E9C12715d8  # AragonTapas
+          - 0xA8cf0c14fAA721A4465DD671c158101166c5Ea0c  # x
+          - 0xE5Bbe58c90B8D3941e0c800920fD1f3Cb78F2f17  # Emancip8
+          - 0xcb8b435481dA1eD5ABC895e03535ce0Bba3b6905  # Community Treasury Votes
+          - 0xda5Dc5d42184Ce218e9dCad68f175a2698371497  # (unnamed)
+          - 0xdEC9e0604C6975c29F5E933b9f9eD3471380081E  # ATP
       - name: VotingEscrow
       - name: ExitQueue
       - name: LockManager
@@ -228,6 +245,32 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+        # Pre-existing tokens on Polygon
+        address:
+          - 0x0A45358CC1e9489aF043106f57d7B377f71cc561  # AEC_1
+          - 0x0bDF6e4674B408CAC2fB00d840c549b4e410cf47  # RNT Staking
+          - 0x1Cd188FC995813A0C183164CcC83bf286387D5Af  # Inputlock Coin
+          - 0x1c1111697C7Fb5B9BB0D76be1e0477fDbE95cA15  # Polymon
+          - 0x2Af618611967Ddfb05bC94d64cb6F4B523E10D36  # STIPENT
+          - 0x2CF658Bb4c8c5c358E793FF31E72b79b118b29d1  # Polymon
+          - 0x38c9a008877A9297A2cFf3d32577B8F285F0D9f1  # OSAAT
+          - 0x39a9e82df87a2309F164B971a535d5B5B8DD2F83  # Polymon
+          - 0x3c571E6dc8F3249E7B05c4ae4973C58750a53E7C  # GutDAO
+          - 0x4989e24fEC5E3bb2De5d67C078e5a28c37681cB9  # RIUDAO
+          - 0x7636fD0211720f3c51313b5ac451366CE699f1C2  # Property Collection Test
+          - 0x7A3C81b5af90dAb1959F7174C16A0e541Cfc7d36  # CEG Delta Neutral NFT
+          - 0x826B87A7eeF13B0Dca646d1ad8BD8b1D6492584c  # BlueChip Fund
+          - 0x833D3169fC6B96430F7325258eD8711A3aD163B1  # Vonenzo Baschello
+          - 0x98B2C974e0962aE5EedF979D3610Bf93C8df69c8  # STIPENT
+          - 0xE61dca577c2BED5636d3b357aCb8651fA2a1f4E2  # High Limit Designs Token
+          - 0xED12D3AFa4334f61C27F22f84603abf78F9af281  # MyGovernance
+          - 0xED996918dB7eC85D009F8c905fF2d86B71Ad627C  # TECoin
+          - 0xF5b45C19ed3F0969A9A012CcfF88fBfd39915185  # Polymon
+          - 0xcb8b435481dA1eD5ABC895e03535ce0Bba3b6905  # Community Treasury Votes
+          - 0xd2D8eA5fA86FeE535c7C2A2368C4e13eEDcA6814  # Test Coin
+          - 0xe25e05F8DdD71518B68E77B74418DEd1736AAE06  # Soulbound20
+          - 0xe730341CB1129bb0a8e0011c31dAb74fae147E43  # GoldToken
+          - 0xf0951b210F868aCD9AdBAf6667B871D6E9644093  # RIUDAO
       - name: VotingEscrow
       - name: ExitQueue
       - name: LockManager
@@ -237,8 +280,12 @@ chains:
       - name: ExecuteSelectorCondition
 
   # --- Arbitrum Mainnet ---
+  # start_block lowered from 145461945 to 70398215 to capture historical
+  # delegation events for pre-existing ARB token used by Aragon DAOs.
+  # Other contracts have no addresses until dynamically registered, so
+  # HyperSync skips the extra blocks with zero overhead.
   - id: 42161
-    start_block: 145461945
+    start_block: 70398215
     contracts:
       - name: DAORegistry
         address:
@@ -254,6 +301,17 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+        # Pre-existing tokens on Arbitrum (ARB token requires the lowered chain start_block)
+        address:
+          - 0x000D636bD52BFc1B3a699165Ef5aa340BEA8939c  # Open Dollar Governance
+          - 0x1060021efb8d97DDe0720d66398efe92d56aFf82  # Dopot
+          - 0x380Cd5b8A8d4E3E0AA655AA4Bd1E991A6A8b22A0  # Yield Basis
+          - 0x6BBd25ce17302A626EdF9cfeED6fb0B3ce2ffc47  # onchainaustria_DAO
+          - 0x912CE59144191C1204E64559FE8253a0e49E6548  # Arbitrum (ARB)
+          - 0x9c66cf6AE5941e87e757d7C3422e2D68FE3b85E4  # TaskBloom Governance Token
+          - 0xA68a0A45265b1488B2ED1C58f572C8E166f49d28  # Vote-escrow SPA
+          - 0xF5a398C30b5538EB5fE1539c610459aD7eCbd242  # Vote-escrow SPA
+          - 0xbD67E4DdA2Cbe88b36b7BEbC41CF43eBBDb87A7A  # Yield Basis
       - name: VotingEscrow
       - name: ExitQueue
       - name: LockManager
@@ -280,6 +338,23 @@ chains:
       - name: TokenVoting
       - name: StagedProposalProcessor
       - name: GovernanceERC20
+        # Pre-existing tokens on Base
+        address:
+          - 0x000096630066820566162C94874A776532705231  # IDRISS
+          - 0x1111111111166b7FE7bd91427724B487980aFc69  # Zora (ZORA)
+          - 0x1C7a460413dD4e964f96D8dFC56E7223cE88CD85  # Seamless (SEAM)
+          - 0x2e5BaC759449b9673Ce2e2e7C87cFce8D8A0b2c3  # Governance Donut
+          - 0x38b88D6568D61556D33592AD7Bc24E89a7fB6691  # Operating System (OPSYS)
+          - 0x5837166C890284619773B287c2A1Af9eF730EaD1  # (unnamed)
+          - 0x5e3a61b550328f3D8C44f60b3e10a49D3d806175  # CryptoGift Coin
+          - 0x5eeB2662615782b58251b6f0c3E107571ae1AB07  # RETAKE.TV
+          - 0x9C574B0f8526315b9defdf7539dD3d25B7Ec7618  # (unnamed)
+          - 0xA8f478a4Ac365243f10a2EEb71fCE38EB4B1373a  # Farcoin
+          - 0xAE4a37d554C6D6F3E398546d8566B25052e0169C  # Donut
+          - 0xC78B6e362cB0f48b59E573dfe7C99d92153a16d3  # Governance Donut
+          - 0xD75dfa972C6136f1c594Fec1945302f885E1ab29  # TGNToken
+          - 0xF2a81609cb1dA12139488D19512371C8930b8161  # LABS
+          - 0xd431AA70Be40B2Cb6244837ceEAF2d011EDD62CE  # ELODAO
       - name: VotingEscrow
       - name: ExitQueue
       - name: LockManager
