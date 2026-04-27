@@ -1,43 +1,39 @@
 # Aragon Indexer
 
-A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://docs.envio.dev). Tracks DAOs, plugin installations, proposals, votes, governance tokens, and voting-escrow locks across the Aragon OSx deployments on Ethereum, Polygon, ZKsync, Base, Arbitrum, and Sepolia.
+Aragon DAO Protocol Indexer. Built with [Envio HyperIndex](https://docs.envio.dev).
 
 ## Chains
 
-| Chain | ID |
+| Network | Chain ID |
 |---|---|
 | Ethereum Mainnet | 1 |
-| Polygon | 137 |
-| ZKsync | 324 |
-| Base | 8453 |
 | Sepolia | 11155111 |
+| Polygon | 137 |
 | Arbitrum | 42161 |
+| Base | 8453 |
+| ZKsync | 324 |
 
-## What it indexes
+## Contracts
 
-### Core registries
-- `DAORegistry`: DAO registrations
-- `PluginRepoRegistry`: plugin repository registrations
-- `PluginSetupProcessor`: installation, update, and uninstallation lifecycle (`InstallationPrepared`/`InstallationApplied`, `UpdatePrepared`/`UpdateApplied`, `UninstallationPrepared`/`UninstallationApplied`)
+- **`DAORegistry`**: `DAORegistered`
+- **`PluginRepoRegistry`**: `PluginRepoRegistered`
+- **`PluginSetupProcessor`**: `InstallationPrepared`, `InstallationApplied`, `UpdatePrepared`, `UpdateApplied`, `UninstallationPrepared`, `UninstallationApplied`
+- **`DAO`**: `MetadataSet`, `NativeTokenDeposited`, `Granted`, `Revoked`, `Executed`
+- **`Multisig`**: `MultisigSettingsUpdated`, `MembersAdded`, `MembersRemoved`, `MultisigProposalCreated`, `MultisigProposalExecuted`, `Approved`
+- **`TokenVoting`**: `VotingSettingsUpdated`, `TokenVotingProposalCreated`, `TokenVotingProposalExecuted`, `VoteCast`
+- **`StagedProposalProcessor`**: `ProposalResultReported`, `ProposalCanceled`, `ProposalEdited`, `ProposalAdvanced`, `SPPProposalCreated`, `SPPProposalExecuted`, `SPPMetadataSet`
+- **`GovernanceERC20`**: `DelegateChanged`, `DelegateVotesChanged`
+- **`VotingEscrow`**: `Deposit`, `Withdraw`, `MinDepositSet`, `TokensDelegated`, `TokensUndelegated`
+- **`ExitQueue`**: `ExitQueued`, `ExitQueuedV2`, `ExitCancelled`, `MinLockSet`, `ExitFeePercentAdjusted`
+- **`LockManager`**: `BalanceLocked`, `BalanceUnlocked`
+- **`LockToVote`**: `LockToVoteVoteCast`, `VoteCleared`, `LockToVoteProposalCreated`, `LockToVoteProposalExecuted`, `LockToVoteSettingsUpdated`
+- **`GaugeVoter`**: `GaugeCreated`, `GaugeActivated`, `GaugeDeactivated`, `GaugeMetadataUpdated`, `Voted`, `Reset`
+- **`CapitalDistributor`**: `CampaignCreated`, `MerkleCampaignSet`, `MerkleCampaignUpdated`, `CampaignPaused`, `CampaignResumed`, `CampaignEnded`
+- **`ExecuteSelectorCondition`**: `SelectorAllowed`, `SelectorDisallowed`, `NativeTransfersAllowed`, `NativeTransfersDisallowed`
 
-### DAO contracts (factory-registered from `DAORegistered`)
-- `DAO`: metadata, native token deposits, permission grants/revokes, executions
+## Schema entities (22)
 
-### Governance plugins
-- `Multisig`: settings, members, proposals, approvals, executions
-- `TokenVoting`: settings, proposals, votes, executions
-- `StagedProposalProcessor`: staged proposal lifecycle, advancement, cancellation, results
-
-### Governance tokens
-- `GovernanceERC20`: delegation and vote-power changes
-
-### VE governance (factory-registered via RPC discovery)
-- `VotingEscrow`: deposits, withdrawals, delegation, min deposit
-- `ExitQueue`, `LockManager`, `LockToVote`, `CapitalDistributor`, `ExecuteSelectorCondition`, `GaugeVoter`
-
-## Schema
-
-22 GraphQL entities including `Dao`, `PluginRepo`, `Plugin`, `PluginSetting`, `Proposal`, `Vote`, `Token`, `Lock`, `TokenDelegation`, `Gauge`, `Campaign`.
+`Dao`, `PluginRepo`, `Plugin`, `PluginSetupLog`, `DaoPermission`, `PluginSetting`, `Proposal`, `Vote`, `PluginMember`, `TokenMember`, `PluginActivityMetric`, `Token`, `DelegateChangedEvent`, `DelegateVotesChangedEvent`, `Lock`, `TokenDelegation`, `LockToVoteMember`, `Gauge`, `GaugeVote`, `Campaign`, `SelectorPermission`, `NativeTransferPermission`
 
 ## Run locally
 
