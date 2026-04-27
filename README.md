@@ -1,23 +1,67 @@
-## Envio ERC20 Template
+# Aragon Indexer
 
-_Please refer to the [documentation website](https://docs.envio.dev) for a thorough guide on all [Envio](https://envio.dev) indexer features_
+A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://docs.envio.dev). Tracks DAOs, plugin installations, proposals, votes, governance tokens, and voting-escrow locks across the Aragon OSx deployments on Ethereum, Polygon, zkSync, Base, Arbitrum, and Sepolia.
 
-### Run
+## Chains
+
+| Chain | ID |
+|---|---|
+| Ethereum Mainnet | 1 |
+| Polygon | 137 |
+| zkSync Era | 324 |
+| Base | 8453 |
+| Sepolia | 11155111 |
+| Arbitrum | 42161 |
+
+## What it indexes
+
+### Core registries
+- `DAORegistry`: DAO registrations
+- `PluginRepoRegistry`: plugin repository registrations
+- `PluginSetupProcessor`: installation, update, and uninstallation lifecycle (`InstallationPrepared`/`Applied`, `UpdatePrepared`/`Applied`, `UninstallationPrepared`/`Applied`)
+
+### DAO contracts (factory-registered from `DAORegistered`)
+- `DAO`: metadata, native token deposits, permission grants/revokes, executions
+
+### Governance plugins
+- `Multisig`: settings, members, proposals, approvals, executions
+- `TokenVoting`: settings, proposals, votes, executions
+- `StagedProposalProcessor`: staged proposal lifecycle, advancement, cancellation, results
+
+### Governance tokens
+- `GovernanceERC20`: delegation and vote-power changes
+
+### VE governance (factory-registered via RPC discovery)
+- `VotingEscrow`: deposits, withdrawals, delegation, min deposit
+- `ExitQueue`, `LockManager`, `LockToVote`, `CapitalDistributor`, `ExecuteSelectorCondition`, `GaugeVoter`
+
+## Schema
+
+22 GraphQL entities including `Dao`, `PluginRepo`, `Plugin`, `PluginSetting`, `Proposal`, `Vote`, `Token`, `Lock`, `TokenDelegation`, `Gauge`, `Campaign`.
+
+## Run locally
 
 ```bash
+pnpm install
 pnpm dev
 ```
 
-Visit http://localhost:8080 to see the GraphQL Playground, local password is `testing`.
+GraphQL playground at [http://localhost:8080](http://localhost:8080) (local password: `testing`).
 
-### Generate files from `config.yaml` or `schema.graphql`
+## Generate from `config.yaml` or `schema.graphql`
 
 ```bash
 pnpm codegen
 ```
 
-### Pre-requisites
+## Pre-requisites
 
 - [Node.js v22+ (v24 recommended)](https://nodejs.org/en/download/current)
-- [pnpm (use v8 or newer)](https://pnpm.io/installation)
+- [pnpm](https://pnpm.io/installation)
 - [Docker](https://www.docker.com/products/docker-desktop/) or [Podman](https://podman.io/)
+
+## Resources
+
+- [Envio docs](https://docs.envio.dev)
+- [HyperIndex overview](https://docs.envio.dev/docs/HyperIndex/overview)
+- [Discord](https://discord.gg/envio)
