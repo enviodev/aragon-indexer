@@ -1,6 +1,6 @@
 # Aragon Indexer
 
-A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://docs.envio.dev). Tracks DAOs, plugin installations, proposals, votes, governance tokens, and voting-escrow locks across the Aragon OSx deployments on Ethereum, Polygon, zkSync, Base, Arbitrum, and Sepolia.
+A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://docs.envio.dev). Tracks DAOs, plugin installations, proposals, votes, governance tokens, and voting-escrow locks across the Aragon OSx deployments on Ethereum, Polygon, ZKsync, Base, Arbitrum, and Sepolia.
 
 ## Chains
 
@@ -8,7 +8,7 @@ A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://d
 |---|---|
 | Ethereum Mainnet | 1 |
 | Polygon | 137 |
-| zkSync Era | 324 |
+| ZKsync | 324 |
 | Base | 8453 |
 | Sepolia | 11155111 |
 | Arbitrum | 42161 |
@@ -18,7 +18,7 @@ A multichain Aragon DAO Protocol indexer built with [Envio HyperIndex](https://d
 ### Core registries
 - `DAORegistry`: DAO registrations
 - `PluginRepoRegistry`: plugin repository registrations
-- `PluginSetupProcessor`: installation, update, and uninstallation lifecycle (`InstallationPrepared`/`Applied`, `UpdatePrepared`/`Applied`, `UninstallationPrepared`/`Applied`)
+- `PluginSetupProcessor`: installation, update, and uninstallation lifecycle (`InstallationPrepared`/`InstallationApplied`, `UpdatePrepared`/`UpdateApplied`, `UninstallationPrepared`/`UninstallationApplied`)
 
 ### DAO contracts (factory-registered from `DAORegistered`)
 - `DAO`: metadata, native token deposits, permission grants/revokes, executions
