@@ -1,6 +1,8 @@
-import { ExecuteSelectorCondition } from "generated";
+import { indexer } from "envio";
 
-ExecuteSelectorCondition.SelectorAllowed.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExecuteSelectorCondition", event: "SelectorAllowed" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const conditionAddress = event.srcAddress;
   const selector = event.params.selector;
@@ -17,9 +19,12 @@ ExecuteSelectorCondition.SelectorAllowed.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-ExecuteSelectorCondition.SelectorDisallowed.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExecuteSelectorCondition", event: "SelectorDisallowed" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const conditionAddress = event.srcAddress;
   const selector = event.params.selector;
@@ -30,9 +35,12 @@ ExecuteSelectorCondition.SelectorDisallowed.handler(async ({ event, context }) =
   if (existing) {
     context.SelectorPermission.set({ ...existing, allowed: false });
   }
-});
+}
+);
 
-ExecuteSelectorCondition.NativeTransfersAllowed.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExecuteSelectorCondition", event: "NativeTransfersAllowed" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const conditionAddress = event.srcAddress;
   const whereAddress = event.params.where;
@@ -47,9 +55,12 @@ ExecuteSelectorCondition.NativeTransfersAllowed.handler(async ({ event, context 
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-ExecuteSelectorCondition.NativeTransfersDisallowed.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExecuteSelectorCondition", event: "NativeTransfersDisallowed" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const conditionAddress = event.srcAddress;
   const whereAddress = event.params.where;
@@ -59,4 +70,5 @@ ExecuteSelectorCondition.NativeTransfersDisallowed.handler(async ({ event, conte
   if (existing) {
     context.NativeTransferPermission.set({ ...existing, allowed: false });
   }
-});
+}
+);

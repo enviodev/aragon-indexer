@@ -1,6 +1,8 @@
-import { PluginRepoRegistry } from "generated";
+import { indexer } from "envio";
 
-PluginRepoRegistry.PluginRepoRegistered.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "PluginRepoRegistry", event: "PluginRepoRegistered" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const id = `${chainId}-${event.params.pluginRepo}`;
 
@@ -15,4 +17,5 @@ PluginRepoRegistry.PluginRepoRegistered.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);

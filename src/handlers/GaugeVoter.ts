@@ -1,6 +1,8 @@
-import { GaugeVoter } from "generated";
+import { indexer } from "envio";
 
-GaugeVoter.GaugeCreated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "GaugeCreated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const gaugeAddress = event.params.gauge;
@@ -17,25 +19,34 @@ GaugeVoter.GaugeCreated.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-GaugeVoter.GaugeActivated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "GaugeActivated" },
+  async ({ event, context }) => {
   const id = `${event.chainId}-${event.params.gauge}`;
   const gauge = await context.Gauge.get(id);
   if (gauge) {
     context.Gauge.set({ ...gauge, status: "Active" });
   }
-});
+}
+);
 
-GaugeVoter.GaugeDeactivated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "GaugeDeactivated" },
+  async ({ event, context }) => {
   const id = `${event.chainId}-${event.params.gauge}`;
   const gauge = await context.Gauge.get(id);
   if (gauge) {
     context.Gauge.set({ ...gauge, status: "Deactivated" });
   }
-});
+}
+);
 
-GaugeVoter.GaugeMetadataUpdated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "GaugeMetadataUpdated" },
+  async ({ event, context }) => {
   const id = `${event.chainId}-${event.params.gauge}`;
   const gauge = await context.Gauge.get(id);
   if (gauge) {
@@ -44,9 +55,12 @@ GaugeVoter.GaugeMetadataUpdated.handler(async ({ event, context }) => {
       metadataUri: event.params.metadataURI || gauge.metadataUri,
     });
   }
-});
+}
+);
 
-GaugeVoter.Voted.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "Voted" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const epoch = event.params.epoch.toString();
@@ -64,9 +78,12 @@ GaugeVoter.Voted.handler(async ({ event, context }) => {
     blockTimestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-GaugeVoter.Reset.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GaugeVoter", event: "Reset" },
+  async ({ event, context }) => {
   // Reset removes voting power from a gauge for a voter in an epoch
   // We log it as a GaugeVote with 0 voting power for tracking
   const chainId = event.chainId;
@@ -86,4 +103,5 @@ GaugeVoter.Reset.handler(async ({ event, context }) => {
     blockTimestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);

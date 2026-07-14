@@ -1,6 +1,8 @@
-import { LockManager } from "generated";
+import { indexer } from "envio";
 
-LockManager.BalanceLocked.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockManager", event: "BalanceLocked" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const lockManagerAddress = event.srcAddress;
   const memberAddress = event.params.voter;
@@ -16,9 +18,12 @@ LockManager.BalanceLocked.handler(async ({ event, context }) => {
     memberAddress,
     lockedAmount: currentAmount + event.params.amount,
   });
-});
+}
+);
 
-LockManager.BalanceUnlocked.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockManager", event: "BalanceUnlocked" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const lockManagerAddress = event.srcAddress;
   const memberAddress = event.params.voter;
@@ -32,4 +37,5 @@ LockManager.BalanceUnlocked.handler(async ({ event, context }) => {
     ...existing,
     lockedAmount: newAmount < 0n ? 0n : newAmount,
   });
-});
+}
+);

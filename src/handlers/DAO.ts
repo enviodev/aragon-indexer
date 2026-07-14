@@ -1,10 +1,12 @@
-import { DAO } from "generated";
+import { indexer } from "envio";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchDaoMetadata } from "../effects/ipfs";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-DAO.MetadataSet.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAO", event: "MetadataSet" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const daoAddress = event.srcAddress;
   const daoId = `${chainId}-${daoAddress}`;
@@ -25,23 +27,32 @@ DAO.MetadataSet.handler(async ({ event, context }) => {
     avatar: metadata?.avatar ?? dao.avatar,
     links: metadata?.linksJson ? JSON.parse(metadata.linksJson) : dao.links,
   });
-});
+}
+);
 
-DAO.NativeTokenDeposited.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAO", event: "NativeTokenDeposited" },
+  async ({ event, context }) => {
   // Log native token deposits — can be used for TVL tracking
   // The DAO entity already exists from DAORegistered
   // No entity update needed for basic indexing
-});
+}
+);
 
 // Register condition addresses for ExecuteSelectorCondition events
-DAO.Granted.contractRegister(({ event, context }) => {
+indexer.contractRegister(
+  { contract: "DAO", event: "Granted" },
+  async ({ event, context }) => {
   const condition = event.params.condition;
   if (condition && condition !== ZERO_ADDRESS) {
-    context.addExecuteSelectorCondition(condition);
+    context.chain.ExecuteSelectorCondition.add(condition);
   }
-});
+}
+);
 
-DAO.Granted.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAO", event: "Granted" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const daoAddress = event.srcAddress;
   const daoId = `${chainId}-${daoAddress}`;
@@ -65,9 +76,12 @@ DAO.Granted.handler(async ({ event, context }) => {
     event: "Granted",
     conditionAddress: event.params.condition || undefined,
   });
-});
+}
+);
 
-DAO.Revoked.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAO", event: "Revoked" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const daoAddress = event.srcAddress;
   const daoId = `${chainId}-${daoAddress}`;
@@ -91,9 +105,13 @@ DAO.Revoked.handler(async ({ event, context }) => {
     event: "Revoked",
     conditionAddress: undefined,
   });
-});
+}
+);
 
-DAO.Executed.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAO", event: "Executed" },
+  async ({ event, context }) => {
   // Log execution events — tracks on-chain actions executed by DAOs
   // Can be extended to decode action data in the future
-});
+}
+);

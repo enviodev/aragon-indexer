@@ -1,16 +1,18 @@
-import { StagedProposalProcessor } from "generated";
+import { indexer } from "envio";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata, fetchDaoMetadata } from "../effects/ipfs";
 import { trackPluginActivity } from "../utils/metrics";
 
-StagedProposalProcessor.ProposalResultReported.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "ProposalResultReported" },
   async ({ event, context }) => {
     // Log proposal result reports from sub-bodies
     // Can be used for tracking multi-stage proposal progression
   }
 );
 
-StagedProposalProcessor.ProposalCanceled.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "ProposalCanceled" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;
@@ -27,7 +29,8 @@ StagedProposalProcessor.ProposalCanceled.handler(
   }
 );
 
-StagedProposalProcessor.ProposalEdited.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "ProposalEdited" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;
@@ -53,14 +56,16 @@ StagedProposalProcessor.ProposalEdited.handler(
   }
 );
 
-StagedProposalProcessor.ProposalAdvanced.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "ProposalAdvanced" },
   async ({ event, context }) => {
     // Proposal advanced to next stage — no status change needed
     // Stage progression tracked via the event itself
   }
 );
 
-StagedProposalProcessor.SPPProposalCreated.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "SPPProposalCreated" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;
@@ -117,7 +122,8 @@ StagedProposalProcessor.SPPProposalCreated.handler(
   }
 );
 
-StagedProposalProcessor.SPPProposalExecuted.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "SPPProposalExecuted" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;
@@ -142,7 +148,8 @@ StagedProposalProcessor.SPPProposalExecuted.handler(
   }
 );
 
-StagedProposalProcessor.SPPMetadataSet.handler(
+indexer.onEvent(
+  { contract: "StagedProposalProcessor", event: "SPPMetadataSet" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;

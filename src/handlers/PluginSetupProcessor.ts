@@ -1,4 +1,4 @@
-import { PluginSetupProcessor } from "generated";
+import { indexer } from "envio";
 import { getPluginTypeFromRepo } from "../utils/pluginRepos";
 import { discoverVeContracts, discoverLockManagerAddress } from "../utils/veDiscovery";
 import { detectPluginByBytecode } from "../utils/bytecodeDetector";
@@ -11,7 +11,8 @@ import { fetchTokenMetadata } from "../effects/rpc";
 // We use the pluginSetupRepo address to detect the correct type.
 // =============================================
 
-PluginSetupProcessor.InstallationPrepared.contractRegister(
+indexer.contractRegister(
+  { contract: "PluginSetupProcessor", event: "InstallationPrepared" },
   async ({ event, context }) => {
     const pluginAddress = event.params.plugin;
     const repoAddress = event.params.pluginSetupRepo;
@@ -27,10 +28,10 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
 
     switch (pluginType) {
       case "multisig":
-        context.addMultisig(pluginAddress);
+        context.chain.Multisig.add(pluginAddress);
         break;
       case "tokenVoting": {
-        context.addTokenVoting(pluginAddress);
+        context.chain.TokenVoting.add(pluginAddress);
         // Register the GovernanceERC20 token for delegation events.
         // Token is a DIFFERENT address from the plugin, so no overwrite.
         // OSx v1.0/v1.3: helpers = [token] (length 1, token at index 0)
@@ -44,55 +45,55 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         // token is discovered, add it to the static list and re-index.
         const tokenAddress = getTokenFromHelpers();
         if (tokenAddress) {
-          context.addGovernanceERC20(tokenAddress);
+          context.chain.GovernanceERC20.add(tokenAddress);
           // Discover VE governance contracts (escrow, exitQueue) from token
           try {
             const ve = await discoverVeContracts(tokenAddress, event.chainId);
             if (ve) {
-              context.addVotingEscrow(ve.escrowAddress as `0x${string}`);
-              if (ve.exitQueueAddress) context.addExitQueue(ve.exitQueueAddress as `0x${string}`);
+              context.chain.VotingEscrow.add(ve.escrowAddress as `0x${string}`);
+              if (ve.exitQueueAddress) context.chain.ExitQueue.add(ve.exitQueueAddress as `0x${string}`);
             }
           } catch { /* VE discovery is best-effort */ }
         }
         break;
       }
       case "spp":
-        context.addStagedProposalProcessor(pluginAddress);
+        context.chain.StagedProposalProcessor.add(pluginAddress);
         break;
       case "admin":
         // Admin plugin doesn't emit proposal/vote events we track yet
         break;
       case "addresslistVoting":
         // Uses same events as TokenVoting (VotingSettingsUpdated, ProposalCreated, etc.)
-        context.addTokenVoting(pluginAddress);
+        context.chain.TokenVoting.add(pluginAddress);
         break;
       case "lockToVote": {
         // LockToVote has same proposal/vote events as TokenVoting
-        context.addLockToVote(pluginAddress);
+        context.chain.LockToVote.add(pluginAddress);
         // Discover LockManager contract via RPC
         try {
           const lockManagerAddr = await discoverLockManagerAddress(pluginAddress, event.chainId);
-          if (lockManagerAddr) context.addLockManager(lockManagerAddr as `0x${string}`);
+          if (lockManagerAddr) context.chain.LockManager.add(lockManagerAddr as `0x${string}`);
         } catch { /* best-effort */ }
         // Also register token and VE contracts from helpers
         const ltToken = getTokenFromHelpers();
         if (ltToken) {
-          context.addGovernanceERC20(ltToken);
+          context.chain.GovernanceERC20.add(ltToken);
           try {
             const ve = await discoverVeContracts(ltToken, event.chainId);
             if (ve) {
-              context.addVotingEscrow(ve.escrowAddress as `0x${string}`);
-              if (ve.exitQueueAddress) context.addExitQueue(ve.exitQueueAddress as `0x${string}`);
+              context.chain.VotingEscrow.add(ve.escrowAddress as `0x${string}`);
+              if (ve.exitQueueAddress) context.chain.ExitQueue.add(ve.exitQueueAddress as `0x${string}`);
             }
           } catch { /* best-effort */ }
         }
         break;
       }
       case "gauge":
-        context.addGaugeVoter(pluginAddress);
+        context.chain.GaugeVoter.add(pluginAddress);
         break;
       case "capitalDistributor":
-        context.addCapitalDistributor(pluginAddress);
+        context.chain.CapitalDistributor.add(pluginAddress);
         break;
       case "router":
       case "claimer":
@@ -103,24 +104,24 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
         try {
           const detected = await detectPluginByBytecode(pluginAddress, event.chainId);
           switch (detected) {
-            case "multisig": context.addMultisig(pluginAddress); break;
+            case "multisig": context.chain.Multisig.add(pluginAddress); break;
             case "tokenVoting": {
-              context.addTokenVoting(pluginAddress);
+              context.chain.TokenVoting.add(pluginAddress);
               const tk = getTokenFromHelpers();
-              if (tk) context.addGovernanceERC20(tk);
+              if (tk) context.chain.GovernanceERC20.add(tk);
               break;
             }
-            case "spp": context.addStagedProposalProcessor(pluginAddress); break;
+            case "spp": context.chain.StagedProposalProcessor.add(pluginAddress); break;
             case "lockToVote": {
-              context.addLockToVote(pluginAddress);
+              context.chain.LockToVote.add(pluginAddress);
               try {
                 const lm = await discoverLockManagerAddress(pluginAddress, event.chainId);
-                if (lm) context.addLockManager(lm as `0x${string}`);
+                if (lm) context.chain.LockManager.add(lm as `0x${string}`);
               } catch {}
               break;
             }
-            case "gauge": context.addGaugeVoter(pluginAddress); break;
-            case "capitalDistributor": context.addCapitalDistributor(pluginAddress); break;
+            case "gauge": context.chain.GaugeVoter.add(pluginAddress); break;
+            case "capitalDistributor": context.chain.CapitalDistributor.add(pluginAddress); break;
             // admin, router, claimer, unknown — no contract registration needed
           }
         } catch { /* bytecode detection failed — skip */ }
@@ -134,7 +135,8 @@ PluginSetupProcessor.InstallationPrepared.contractRegister(
 // Handlers
 // =============================================
 
-PluginSetupProcessor.InstallationPrepared.handler(
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "InstallationPrepared" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;
@@ -237,7 +239,8 @@ PluginSetupProcessor.InstallationPrepared.handler(
   }
 );
 
-PluginSetupProcessor.InstallationApplied.handler(
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "InstallationApplied" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;
@@ -281,7 +284,9 @@ PluginSetupProcessor.InstallationApplied.handler(
   }
 );
 
-PluginSetupProcessor.UpdatePrepared.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "UpdatePrepared" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;
 
@@ -302,9 +307,12 @@ PluginSetupProcessor.UpdatePrepared.handler(async ({ event, context }) => {
     build: Number(event.params.versionTag[1]),
     permissions: undefined,
   });
-});
+}
+);
 
-PluginSetupProcessor.UpdateApplied.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "UpdateApplied" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;
 
@@ -337,9 +345,11 @@ PluginSetupProcessor.UpdateApplied.handler(async ({ event, context }) => {
       status: "updated",
     });
   }
-});
+}
+);
 
-PluginSetupProcessor.UninstallationPrepared.handler(
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "UninstallationPrepared" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;
@@ -364,7 +374,8 @@ PluginSetupProcessor.UninstallationPrepared.handler(
   }
 );
 
-PluginSetupProcessor.UninstallationApplied.handler(
+indexer.onEvent(
+  { contract: "PluginSetupProcessor", event: "UninstallationApplied" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const id = `${chainId}-${event.transaction.hash}-${event.logIndex}`;

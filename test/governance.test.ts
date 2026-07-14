@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 describe("Multisig Governance", () => {
   it("tracks Approved votes with correct structure", async () => {

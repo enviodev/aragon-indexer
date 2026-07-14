@@ -1,8 +1,10 @@
-import { GovernanceERC20 } from "generated";
+import { indexer } from "envio";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-GovernanceERC20.DelegateChanged.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GovernanceERC20", event: "DelegateChanged" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const tokenAddress = event.srcAddress;
 
@@ -17,9 +19,12 @@ GovernanceERC20.DelegateChanged.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-GovernanceERC20.DelegateVotesChanged.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "GovernanceERC20", event: "DelegateVotesChanged" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const tokenAddress = event.srcAddress;
   const delegate = event.params.delegate;
@@ -50,4 +55,5 @@ GovernanceERC20.DelegateVotesChanged.handler(async ({ event, context }) => {
     memberAddress: delegate,
     votingPower: event.params.newBalance,
   });
-});
+}
+);

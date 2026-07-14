@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 describe("End-to-End: Full DAO Lifecycle", () => {
   it("Multisig DAO: creation → plugin installed → member added → approval → executed", async () => {

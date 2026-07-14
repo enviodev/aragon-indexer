@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 describe("GovernanceERC20 — Delegation Tracking", () => {
   it("registers GovernanceERC20 token from InstallationPrepared helpers", async () => {

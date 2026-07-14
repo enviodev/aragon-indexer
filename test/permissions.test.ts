@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 describe("DAO Permissions — Granted & Revoked", () => {
   it("creates DaoPermission entities from Granted events", async () => {

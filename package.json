@@ -6,7 +6,7 @@
     "codegen": "envio codegen",
     "dev": "envio dev",
     "start": "envio start",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -15,10 +15,7 @@
     "vitest": "4.0.18"
   },
   "dependencies": {
-    "envio": "3.0.0-alpha.18"
-  },
-  "optionalDependencies": {
-    "generated": "./aragon-indexer/../generated"
+    "envio": "3.2.1"
   },
   "engines": {
     "node": ">=22.0.0"

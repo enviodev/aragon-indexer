@@ -1,11 +1,16 @@
-import { DAORegistry } from "generated";
+import { indexer } from "envio";
 
 // Register DAO address for dynamic event tracking
-DAORegistry.DAORegistered.contractRegister(({ event, context }) => {
-  context.addDAO(event.params.dao);
-});
+indexer.contractRegister(
+  { contract: "DAORegistry", event: "DAORegistered" },
+  async ({ event, context }) => {
+  context.chain.DAO.add(event.params.dao);
+}
+);
 
-DAORegistry.DAORegistered.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "DAORegistry", event: "DAORegistered" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const daoAddress = event.params.dao;
   const id = `${chainId}-${daoAddress}`;
@@ -36,4 +41,5 @@ DAORegistry.DAORegistered.handler(async ({ event, context }) => {
     voteCount: 0,
     memberCount: 0,
   });
-});
+}
+);

@@ -1,9 +1,11 @@
-import { LockToVote } from "generated";
+import { indexer } from "envio";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
 import { trackPluginActivity } from "../utils/metrics";
 
-LockToVote.LockToVoteVoteCast.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockToVote", event: "LockToVoteVoteCast" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -39,9 +41,12 @@ LockToVote.LockToVoteVoteCast.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
   }
   await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.voter, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
-});
+}
+);
 
-LockToVote.VoteCleared.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockToVote", event: "VoteCleared" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const proposalIndex = event.params.proposalId.toString();
@@ -56,9 +61,12 @@ LockToVote.VoteCleared.handler(async ({ event, context }) => {
   if (proposal && proposal.voteCount > 0) {
     context.Proposal.set({ ...proposal, voteCount: proposal.voteCount - 1 });
   }
-});
+}
+);
 
-LockToVote.LockToVoteProposalCreated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockToVote", event: "LockToVoteProposalCreated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -109,9 +117,12 @@ LockToVote.LockToVoteProposalCreated.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
   }
   await trackPluginActivity(context as any, { chainId, pluginId: pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
-});
+}
+);
 
-LockToVote.LockToVoteProposalExecuted.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockToVote", event: "LockToVoteProposalExecuted" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const proposalIndex = event.params.proposalId.toString();
@@ -132,9 +143,12 @@ LockToVote.LockToVoteProposalExecuted.handler(async ({ event, context }) => {
   if (dao) {
     context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
   }
-});
+}
+);
 
-LockToVote.LockToVoteSettingsUpdated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "LockToVote", event: "LockToVoteSettingsUpdated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -165,4 +179,5 @@ LockToVote.LockToVoteSettingsUpdated.handler(async ({ event, context }) => {
     stages: undefined,
     policy: undefined,
   });
-});
+}
+);

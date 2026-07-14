@@ -1,6 +1,8 @@
-import { ExitQueue } from "generated";
+import { indexer } from "envio";
 
-ExitQueue.ExitQueued.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExitQueue", event: "ExitQueued" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const tokenId = event.params.tokenId.toString();
 
@@ -17,9 +19,12 @@ ExitQueue.ExitQueued.handler(async ({ event, context }) => {
       exitCancelled: false,
     });
   }
-});
+}
+);
 
-ExitQueue.ExitQueuedV2.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExitQueue", event: "ExitQueuedV2" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const tokenId = event.params.tokenId.toString();
 
@@ -33,9 +38,12 @@ ExitQueue.ExitQueuedV2.handler(async ({ event, context }) => {
       exitCancelled: false,
     });
   }
-});
+}
+);
 
-ExitQueue.ExitCancelled.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExitQueue", event: "ExitCancelled" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const tokenId = event.params.tokenId.toString();
 
@@ -48,12 +56,19 @@ ExitQueue.ExitCancelled.handler(async ({ event, context }) => {
       exitCancelled: true,
     });
   }
-});
+}
+);
 
-ExitQueue.MinLockSet.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExitQueue", event: "MinLockSet" },
+  async ({ event, context }) => {
   // Track minimum lock period changes — informational
-});
+}
+);
 
-ExitQueue.ExitFeePercentAdjusted.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "ExitQueue", event: "ExitFeePercentAdjusted" },
+  async ({ event, context }) => {
   // Track fee adjustments — informational
-});
+}
+);

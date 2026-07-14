@@ -1,9 +1,11 @@
-import { TokenVoting } from "generated";
+import { indexer } from "envio";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
 import { trackPluginActivity } from "../utils/metrics";
 
-TokenVoting.VotingSettingsUpdated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "TokenVoting", event: "VotingSettingsUpdated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -35,9 +37,12 @@ TokenVoting.VotingSettingsUpdated.handler(async ({ event, context }) => {
     stages: undefined,
     policy: undefined,
   });
-});
+}
+);
 
-TokenVoting.TokenVotingProposalCreated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "TokenVoting", event: "TokenVotingProposalCreated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -85,9 +90,11 @@ TokenVoting.TokenVotingProposalCreated.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
     await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
   }
-});
+}
+);
 
-TokenVoting.TokenVotingProposalExecuted.handler(
+indexer.onEvent(
+  { contract: "TokenVoting", event: "TokenVotingProposalExecuted" },
   async ({ event, context }) => {
     const chainId = event.chainId;
     const pluginAddress = event.srcAddress;
@@ -112,7 +119,9 @@ TokenVoting.TokenVotingProposalExecuted.handler(
   }
 );
 
-TokenVoting.VoteCast.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "TokenVoting", event: "VoteCast" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -149,4 +158,5 @@ TokenVoting.VoteCast.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
   }
   await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.voter, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
-});
+}
+);

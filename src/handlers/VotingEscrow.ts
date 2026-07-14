@@ -1,6 +1,8 @@
-import { VotingEscrow } from "generated";
+import { indexer } from "envio";
 
-VotingEscrow.Deposit.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "VotingEscrow", event: "Deposit" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const escrowAddress = event.srcAddress;
   const tokenId = event.params.tokenId.toString();
@@ -22,9 +24,12 @@ VotingEscrow.Deposit.handler(async ({ event, context }) => {
     exitQueuedAt: undefined,
     exitCancelled: false,
   });
-});
+}
+);
 
-VotingEscrow.Withdraw.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "VotingEscrow", event: "Withdraw" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const escrowAddress = event.srcAddress;
   const tokenId = event.params.tokenId.toString();
@@ -39,13 +44,19 @@ VotingEscrow.Withdraw.handler(async ({ event, context }) => {
     withdrawnAt: event.block.timestamp,
     amount: 0n,
   });
-});
+}
+);
 
-VotingEscrow.MinDepositSet.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "VotingEscrow", event: "MinDepositSet" },
+  async ({ event, context }) => {
   // Track minimum deposit changes — informational, no entity update needed
-});
+}
+);
 
-VotingEscrow.TokensDelegated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "VotingEscrow", event: "TokensDelegated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const escrowAddress = event.srcAddress;
   const id = `${chainId}-${escrowAddress}-${event.params.sender}-${event.params.delegatee}`;
@@ -61,9 +72,12 @@ VotingEscrow.TokensDelegated.handler(async ({ event, context }) => {
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
-});
+}
+);
 
-VotingEscrow.TokensUndelegated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "VotingEscrow", event: "TokensUndelegated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const escrowAddress = event.srcAddress;
   const id = `${chainId}-${escrowAddress}-${event.params.sender}-${event.params.delegatee}`;
@@ -77,4 +91,5 @@ VotingEscrow.TokensUndelegated.handler(async ({ event, context }) => {
       transactionHash: event.transaction.hash,
     });
   }
-});
+}
+);

@@ -1,9 +1,11 @@
-import { Multisig } from "generated";
+import { indexer } from "envio";
 import { extractIpfsCid } from "../utils/metadata";
 import { fetchProposalMetadata } from "../effects/ipfs";
 import { trackPluginActivity } from "../utils/metrics";
 
-Multisig.MultisigSettingsUpdated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "MultisigSettingsUpdated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -35,9 +37,12 @@ Multisig.MultisigSettingsUpdated.handler(async ({ event, context }) => {
     stages: undefined,
     policy: undefined,
   });
-});
+}
+);
 
-Multisig.MembersAdded.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "MembersAdded" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -65,9 +70,12 @@ Multisig.MembersAdded.handler(async ({ event, context }) => {
       memberCount: dao.memberCount + event.params.members.length,
     });
   }
-});
+}
+);
 
-Multisig.MembersRemoved.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "MembersRemoved" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -88,9 +96,12 @@ Multisig.MembersRemoved.handler(async ({ event, context }) => {
       memberCount: Math.max(0, dao.memberCount - event.params.members.length),
     });
   }
-});
+}
+);
 
-Multisig.MultisigProposalCreated.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "MultisigProposalCreated" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -138,9 +149,12 @@ Multisig.MultisigProposalCreated.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, proposalCount: dao.proposalCount + 1 });
     await trackPluginActivity(context as any, { chainId, pluginId: pluginId, pluginAddress, memberAddress: event.params.creator, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "proposal" });
   }
-});
+}
+);
 
-Multisig.MultisigProposalExecuted.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "MultisigProposalExecuted" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const proposalIndex = event.params.proposalId.toString();
@@ -161,9 +175,12 @@ Multisig.MultisigProposalExecuted.handler(async ({ event, context }) => {
   if (dao) {
     context.Dao.set({ ...dao, proposalsExecuted: dao.proposalsExecuted + 1 });
   }
-});
+}
+);
 
-Multisig.Approved.handler(async ({ event, context }) => {
+indexer.onEvent(
+  { contract: "Multisig", event: "Approved" },
+  async ({ event, context }) => {
   const chainId = event.chainId;
   const pluginAddress = event.srcAddress;
   const pluginId = `${chainId}-${pluginAddress}`;
@@ -200,4 +217,5 @@ Multisig.Approved.handler(async ({ event, context }) => {
     context.Dao.set({ ...dao, voteCount: dao.voteCount + 1 });
   }
   await trackPluginActivity(context as any, { chainId, pluginId, pluginAddress, memberAddress: event.params.approver, daoAddress: plugin.daoAddress, blockNumber: event.block.number, type: "vote" });
-});
+}
+);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 describe("PluginSetupProcessor — Plugin Lifecycle", () => {
   it("creates Plugin entity in installed status from same-block Prepared+Applied", async () => {

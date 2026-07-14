@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTestIndexer } from "generated";
+import { createTestIndexer } from "envio";
 
 // Block 16726392: First Multisig DAO creation on Ethereum mainnet
 // Block 16726558: First TokenVoting DAO creation
