@@ -47,7 +47,7 @@ const erc20Abi = parseAbi([
 export const discoverVotingEscrow = createEffect(
   {
     name: "discoverVotingEscrow",
-    input: S.schema({ tokenAddress: S.string, chainId: S.number }),
+    input: S.schema({ tokenAddress: S.string}),
     output: S.union([
       S.schema({
         escrowAddress: S.string,
@@ -103,7 +103,7 @@ export const discoverVotingEscrow = createEffect(
 export const fetchTokenMetadata = createEffect(
   {
     name: "fetchTokenMetadata",
-    input: S.schema({ tokenAddress: S.string, chainId: S.number }),
+    input: S.schema({ tokenAddress: S.string}),
     output: S.union([
       S.schema({
         name: S.optional(S.string),
@@ -148,7 +148,7 @@ export const fetchTokenMetadata = createEffect(
 export const discoverLockManager = createEffect(
   {
     name: "discoverLockManager",
-    input: S.schema({ pluginAddress: S.string, chainId: S.number }),
+    input: S.schema({ pluginAddress: S.string}),
     output: S.union([S.string, null]),
     cache: true,
     rateLimit: false,

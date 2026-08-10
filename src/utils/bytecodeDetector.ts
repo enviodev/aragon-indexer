@@ -103,7 +103,6 @@ function getClient(chainId: number) {
  */
 export async function detectPluginByBytecode(
   address: string,
-  chainId: number
 ): Promise<DetectedPluginType> {
   const client = getClient(chainId);
   if (!client) return "unknown";

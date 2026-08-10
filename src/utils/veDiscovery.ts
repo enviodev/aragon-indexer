@@ -39,7 +39,6 @@ function getClient(chainId: number) {
  */
 export async function discoverVeContracts(
   tokenAddress: string,
-  chainId: number
 ): Promise<{ escrowAddress: string; exitQueueAddress?: string } | null> {
   const client = getClient(chainId);
   if (!client) return null;
@@ -73,7 +72,6 @@ export async function discoverVeContracts(
  */
 export async function discoverLockManagerAddress(
   pluginAddress: string,
-  chainId: number
 ): Promise<string | null> {
   const client = getClient(chainId);
   if (!client) return null;

@@ -55,7 +55,6 @@ export async function incrementDaoVoteCount(
 export async function trackPluginActivity(
   context: Context,
   params: {
-    chainId: number;
     pluginId: string;
     pluginAddress: string;
     memberAddress: string;
@@ -79,7 +78,6 @@ export async function trackPluginActivity(
   } else {
     context.PluginActivityMetric.set({
       id,
-      chainId: params.chainId,
       plugin_id: params.pluginId,
       pluginAddress: params.pluginAddress,
       memberAddress: params.memberAddress,
